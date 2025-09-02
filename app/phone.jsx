@@ -1,16 +1,17 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet,Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemeContext } from '../context/ThemeContext';
 import ThemeToggle from '../components/ThemeToggle';
+import { UserContext } from "../context/UserContext";
 
 export default function PhoneLogin() {
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
   const isDarkMode = theme === 'dark';
+  const { setUserPhone } = useContext(UserContext);
 
   const [phone, setPhone] = useState('');
-
   const styles = isDarkMode ? darkStyles : lightStyles;
 
   const handleSendOtp = () => {
@@ -18,20 +19,21 @@ export default function PhoneLogin() {
       Alert.alert("Invalid Phone Number", "Please enter a valid phone number");
       return;
     }
-    router.push('/phoneotp');
+
+    setUserPhone(phone); // save phone in context
+    router.push('/phoneotp'); // navigate to OTP screen
   };
 
   return (
     <View style={styles.container}>
       <ThemeToggle />
-
-      {/* Large rounded title box with centered text */}
       <View style={styles.titleBox}>
         <Text style={styles.title}>Mystery Makers</Text>
       </View>
 
       <Text style={styles.subtitle}>Login</Text>
       <Text style={styles.info}>Please sign in using your phone no. to continue</Text>
+
       <TextInput
         style={styles.input}
         placeholder="Phone Number"
@@ -41,7 +43,6 @@ export default function PhoneLogin() {
         placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
       />
 
-      {/* Buttons in horizontal row */}
       <View style={styles.buttonRow}>
         <TouchableOpacity style={[styles.button, styles.backButton]} onPress={() => router.back()}>
           <Text style={styles.buttonText}>← BACK</Text>
@@ -53,6 +54,12 @@ export default function PhoneLogin() {
     </View>
   );
 }
+
+// Styles omitted for brevity (use your previous lightStyles and darkStyles)
+
+
+// Add your lightStyles and darkStyles here (same as your current code)
+
 
 const commonButton = {
   height: 44,

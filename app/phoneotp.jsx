@@ -1,77 +1,83 @@
-import React, { useState, useContext,useRef,useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet,Alert } from 'react-native';
-import { useRouter,useLocalSearchParams } from 'expo-router';
-import { ThemeContext } from '../context/ThemeContext';
+import React, { useState, useContext, useRef,useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
+import { ThemeContext } from "../context/ThemeContext";
 import ThemeToggle from '../components/ThemeToggle';
-import{auth} from '../utils/firebaseConfig'
+import { UserContext } from "../context/UserContext";
 import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha';
-import { signInWithPhoneNumber } from 'firebase/auth';
+import { getAuth, signInWithPhoneNumber } from 'firebase/auth';
+import { firebaseConfig } from '../utils/firebaseConfig';
 
 export default function PhoneOtp() {
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
   const isDarkMode = theme === 'dark';
   const recaptchaVerifier = useRef(null);
-  const { phone } = useLocalSearchParams();  
-  const [phoneNumber, setPhoneNumber] = useState(phone || '')
+  const { userPhone } = useContext(UserContext);
+
   const [otp, setOtp] = useState('');
-  const [confirmationResult, setConfirmationResult] = useState(null)
-
+  const [confirmationResult, setConfirmationResult] = useState(null);
   const styles = isDarkMode ? darkStyles : lightStyles;
+  const auth = getAuth(); // Initialize Firebase Auth
 
+  // Send OTP when user presses button
   const sendOtp = async () => {
+    if (!userPhone) return;
+
+    const formattedPhone = userPhone.startsWith('+') ? userPhone : `+91${userPhone}`;
+
     try {
-      const confirmation = await signInWithPhoneNumber(
-        auth,
-        phoneNumber,
-        recaptchaVerifier.current
-      );
+      const confirmation = await signInWithPhoneNumber(auth, formattedPhone, recaptchaVerifier.current);
       setConfirmationResult(confirmation);
-      Alert.alert('OTP sent!');
+      Alert.alert('OTP Sent', `OTP sent to ${formattedPhone}`);
     } catch (err) {
       Alert.alert('Error', err.message);
     }
   };
-  
+
+  useEffect(() => {
+    if (userPhone) {
+      sendOtp();
+    }
+  }, [userPhone]);
+
   const verifyOtp = async () => {
+    if (!confirmationResult) {
+      Alert.alert('Error', 'Please request OTP first');
+      return;
+    }
+
     try {
-      if (!confirmationResult) {
-        Alert.alert('Error', 'First request OTP!');
-        return;
-      }
-      await confirmationResult.confirm(otp); 
+      await confirmationResult.confirm(otp);
       Alert.alert('Success', 'Phone authentication successful!');
-      router.push('/home'); 
+      router.push('/(tabs)/index,js'); // navigate after successful login
     } catch (err) {
       Alert.alert('Invalid OTP', err.message);
     }
   };
 
-  useEffect(() => {
-    if (phoneNumber) {
-      sendOtp();
-    }
-  }, []);
-
-
   return (
     <View style={styles.container}>
-      
       <FirebaseRecaptchaVerifierModal
         ref={recaptchaVerifier}
-        firebaseConfig={auth.app.options}
+        firebaseConfig={firebaseConfig}
+        attemptInvisibleVerification={true} // optional
       />
+
       <ThemeToggle />
 
       <View style={styles.titleBox}>
         <Text style={styles.title}>Mystery Makers</Text>
       </View>
 
-      <Text style={styles.subtitle}>Enter the OTP</Text>
-      <Text style={styles.info}>Please enter the OTP received on your mobile number to continue</Text>
+      <Text style={styles.subtitle}>Enter OTP</Text>
+      <Text style={styles.info}>
+        Enter the OTP received on your mobile number:{userPhone}
+      </Text>
+
       <TextInput
         style={styles.input}
-        placeholder="Enter OTP"
+        placeholder="OTP"
         keyboardType="numeric"
         value={otp}
         onChangeText={setOtp}
@@ -79,24 +85,29 @@ export default function PhoneOtp() {
       />
 
       <TouchableOpacity onPress={sendOtp}>
-        <Text style={styles.resendText}>Didn't receive it? Click here</Text>
+        <Text style={styles.resendText}>Didn't receive OTP? Click here</Text>
       </TouchableOpacity>
-
-      <View style={styles.buttonRow}>
+        <View style={styles.buttonRow}>
         <TouchableOpacity style={[styles.button, styles.backButton]} onPress={() => router.back()}>
           <Text style={styles.buttonText}>← BACK</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.button} onPress={verifyOtp}>
-          <Text style={styles.buttonText}>LOGIN →</Text>
-        </TouchableOpacity>
-      </View>
-
       
-
+      <TouchableOpacity style={styles.button} onPress={verifyOtp}>
+        <Text style={styles.buttonText}>LOGIN →</Text>
+      </TouchableOpacity>
+    </View>
+    
     </View>
   );
+  
 }
+
+// Styles omitted for brevity (use your previous lightStyles and darkStyles)
+
+// styles here (reuse your current lightStyles & darkStyles)
+
+// Add your lightStyles and darkStyles here (same as your current code)
+
 
 const commonButton = {
   height: 44,
@@ -141,6 +152,8 @@ const lightStyles = StyleSheet.create({
   buttonText: { color: '#FFECEC', fontWeight: 'bold', fontSize: 18, textAlign: 'center' },
   resendText: { color: '#FF383C',opacity:0.5, textAlign: 'right', textDecorationLine: 'underline', fontSize: 14 },
 });
+
+
 
 
 const darkStyles = StyleSheet.create({
