@@ -52,18 +52,18 @@ const _Layout = () => {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: "Map",
           headerShown: false,
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon={require('../../assets/home.png')} />,
+          tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon={require('../../assets/map.png')} />,
         }}
       />
 
       <Tabs.Screen
-        name="map"
+        name="whispers"
         options={{
-          title: "Map",
+          title: "Whispers",
           headerShown: false,
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon={require('../../assets/map.png')} />,
+          tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon={require('../../assets/home.png')} />,
         }}
       />
 

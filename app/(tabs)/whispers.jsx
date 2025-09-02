@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, Button } from 'react-native';
 import { useTheme } from '../../utils/themeContext';  // adjust path as needed
 
-const Map = () => {
+const Whispers = () => {
   const { theme, mode, toggleTheme } = useTheme();
-    return (
-      <View style={[styles.container, { backgroundColor: theme.c1 }]}>
-            <Text style={[styles.text, { color: theme.c2 }]}>Map</Text>
-      </View>
-    );
+  return (
+    <View style={[styles.container, { backgroundColor: theme.c1 }]}>
+          <Text style={[styles.text, { color: theme.c2 }]}>Whispers</Text>
+    </View>
+  );
 }
 
-export default Map;
+export default Whispers;
 
 const styles = StyleSheet.create({
     text: {
