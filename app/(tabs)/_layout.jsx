@@ -63,7 +63,7 @@ const _Layout = () => {
         options={{
           title: "Whispers",
           headerShown: false,
-          tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon={require('../../assets/home.png')} />,
+          tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon={require('../../assets/whisper.png')} />,
         }}
       />
 
