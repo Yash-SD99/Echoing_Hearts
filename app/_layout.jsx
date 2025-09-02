@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StatusBar } from 'react-native';
 import { Stack } from 'expo-router';
 import { useTheme, ThemeProvider } from '../utils/themeContext';
+import { UserProvider } from '../context/UserContext'; // ✅ import UserProvider
 
 function InnerLayout() {
   const { theme } = useTheme();
@@ -23,11 +24,13 @@ function InnerLayout() {
 
 export default function Layout() {
   return (
+    // ✅ Wrap with both ThemeProvider and UserProvider
     <ThemeProvider>
-      <View style={{ flex: 1 }}>
-        <InnerLayout />
-      </View>
+      <UserProvider>
+        <View style={{ flex: 1 }}>
+          <InnerLayout />
+        </View>
+      </UserProvider>
     </ThemeProvider>
   );
 }
-
