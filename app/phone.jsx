@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet,Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemeContext } from '../context/ThemeContext';
 import ThemeToggle from '../components/ThemeToggle';
@@ -12,6 +12,14 @@ export default function PhoneLogin() {
   const [phone, setPhone] = useState('');
 
   const styles = isDarkMode ? darkStyles : lightStyles;
+
+  const handleSendOtp = () => {
+    if (!phone || phone.length < 10) {
+      Alert.alert("Invalid Phone Number", "Please enter a valid phone number");
+      return;
+    }
+    router.push('/phoneotp');
+  };
 
   return (
     <View style={styles.container}>
@@ -38,7 +46,7 @@ export default function PhoneLogin() {
         <TouchableOpacity style={[styles.button, styles.backButton]} onPress={() => router.back()}>
           <Text style={styles.buttonText}>← BACK</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => router.push('/phoneotp')}>
+        <TouchableOpacity style={styles.button} onPress={handleSendOtp}>
           <Text style={styles.buttonText}>Send OTP →</Text>
         </TouchableOpacity>
       </View>
