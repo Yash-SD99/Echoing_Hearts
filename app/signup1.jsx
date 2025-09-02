@@ -1,8 +1,10 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet,Button,Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemeContext } from '../context/ThemeContext';
 import ThemeToggle from '../components/ThemeToggle';
+import {auth} from '../utils/firebaseConfig';
+import { createUserWithEmailAndPassword} from 'firebase/auth';
 
 export default function SignupStep1() {
   const router = useRouter();
@@ -15,6 +17,31 @@ export default function SignupStep1() {
   const [phone, setPhone] = useState('');
 
   const styles = isDarkMode ? darkStyles : lightStyles;
+
+  const handleNext = async () => {
+  if (!email || !password || !confPassword || !phone) {
+    Alert.alert("Error", "Please fill all fields.");
+    return;
+  }
+  if (password !== confPassword) {
+    Alert.alert("Error", "Passwords do not match!");
+    return;
+  }
+
+  try {
+    // Create user in Firebase Authentication
+    await createUserWithEmailAndPassword(auth, email, password);
+
+    // Navigate to SignupStep2 with params
+    router.push({
+      pathname: '/signup2',
+      params: { email, phone },
+    });
+  } catch (error) {
+    Alert.alert("Signup Failed", error.message);
+  }
+};
+
 
   return (
     <View style={styles.container}>
@@ -65,7 +92,7 @@ export default function SignupStep1() {
           <Text style={styles.buttonText}>← BACK</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={() => router.push('/signup2')}>
+        <TouchableOpacity style={styles.button} onPress={handleNext}>
           <Text style={styles.buttonText}>NEXT →</Text>
         </TouchableOpacity>
       </View>

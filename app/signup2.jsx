@@ -3,19 +3,45 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-nativ
 import { useRouter } from 'expo-router';
 import { ThemeContext } from '../context/ThemeContext';
 import ThemeToggle from '../components/ThemeToggle';
+import { db, auth } from '../utils/firebaseConfig';
+import { setDoc, doc } from 'firebase/firestore';
+import { useLocalSearchParams } from 'expo-router';
 
 export default function SignupStep2() {
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
   const isDarkMode = theme === 'dark';
-
+  const { email, phone } = useLocalSearchParams();
+  
   const [gender, setGender] = useState('');
   const [city, setCity] = useState('');
   const [stateCountry, setStateCountry] = useState('');
   const [address, setAddress] = useState('');
 
   const styles = isDarkMode ? darkStyles : lightStyles;
+  const handleSignup = async () => {
+  if (!gender || !city || !stateCountry) {
+    alert("Please fill all required fields");
+    return;
+  }
 
+  try {
+    const userId = auth.currentUser.uid;
+    await setDoc(doc(db, "users", userId), {
+      email,
+      phone,
+      gender,
+      city,
+      stateCountry,
+      address,
+    }, { merge: true });
+
+    alert("Signup successful!");
+    router.replace('/home'); // navigate to home/dashboard
+  } catch (error) {
+    alert("Error: " + error.message);
+  }
+};
   return (
     <View style={styles.container}>
       <ThemeToggle />
@@ -61,7 +87,7 @@ export default function SignupStep2() {
           <Text style={styles.buttonText}>← BACK</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={() => {/* Submit signup logic */}}>
+        <TouchableOpacity style={styles.button} onPress={handleSignup}>
           <Text style={styles.buttonText}>SIGN UP</Text>
         </TouchableOpacity>
       </View>
