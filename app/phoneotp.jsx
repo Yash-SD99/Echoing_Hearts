@@ -1,66 +1,20 @@
-import React, { useState, useContext,useRef,useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet,Alert } from 'react-native';
-import { useRouter,useLocalSearchParams } from 'expo-router';
+import React, { useState, useContext } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 import { ThemeContext } from '../context/ThemeContext';
 import ThemeToggle from '../components/ThemeToggle';
-import{auth} from '../utils/firebaseConfig'
-import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha';
-import { signInWithPhoneNumber } from 'firebase/auth';
 
 export default function PhoneOtp() {
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
   const isDarkMode = theme === 'dark';
-  const recaptchaVerifier = useRef(null);
-  const { phone } = useLocalSearchParams();  
-  const [phoneNumber, setPhoneNumber] = useState(phone || '')
+
   const [otp, setOtp] = useState('');
-  const [confirmationResult, setConfirmationResult] = useState(null)
 
   const styles = isDarkMode ? darkStyles : lightStyles;
 
-  const sendOtp = async () => {
-    try {
-      const confirmation = await signInWithPhoneNumber(
-        auth,
-        phoneNumber,
-        recaptchaVerifier.current
-      );
-      setConfirmationResult(confirmation);
-      Alert.alert('OTP sent!');
-    } catch (err) {
-      Alert.alert('Error', err.message);
-    }
-  };
-  
-  const verifyOtp = async () => {
-    try {
-      if (!confirmationResult) {
-        Alert.alert('Error', 'First request OTP!');
-        return;
-      }
-      await confirmationResult.confirm(otp); 
-      Alert.alert('Success', 'Phone authentication successful!');
-      router.push('/home'); 
-    } catch (err) {
-      Alert.alert('Invalid OTP', err.message);
-    }
-  };
-
-  useEffect(() => {
-    if (phoneNumber) {
-      sendOtp();
-    }
-  }, []);
-
-
   return (
     <View style={styles.container}>
-      
-      <FirebaseRecaptchaVerifierModal
-        ref={recaptchaVerifier}
-        firebaseConfig={auth.app.options}
-      />
       <ThemeToggle />
 
       <View style={styles.titleBox}>
@@ -78,7 +32,7 @@ export default function PhoneOtp() {
         placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
       />
 
-      <TouchableOpacity onPress={sendOtp}>
+      <TouchableOpacity onPress={() => {/* Resend OTP logic here */}}>
         <Text style={styles.resendText}>Didn't receive it? Click here</Text>
       </TouchableOpacity>
 
@@ -87,7 +41,7 @@ export default function PhoneOtp() {
           <Text style={styles.buttonText}>← BACK</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={verifyOtp}>
+        <TouchableOpacity style={styles.button} onPress={() => {/* Verify OTP logic here */}}>
           <Text style={styles.buttonText}>LOGIN →</Text>
         </TouchableOpacity>
       </View>
