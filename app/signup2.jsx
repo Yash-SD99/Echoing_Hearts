@@ -37,7 +37,7 @@ export default function SignupStep2() {
     }, { merge: true });
 
     alert("Signup successful!");
-    router.replace('/home'); // navigate to home/dashboard
+    router.replace('/email'); // navigate to home/dashboard
   } catch (error) {
     alert("Error: " + error.message);
   }
