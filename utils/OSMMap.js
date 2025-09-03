@@ -3,6 +3,23 @@ import { WebView } from 'react-native-webview';
 import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset';
 import markerImage from '../assets/marker.png';
+import userMarkerImage from '../assets/cur.png';
+
+function useUserMarkerIconBase64() {
+  const [base64, setBase64] = useState(null);
+
+  useEffect(() => {
+    async function loadBase64() {
+      const asset = Asset.fromModule(userMarkerImage);
+      await asset.downloadAsync();
+      const base64str = await FileSystem.readAsStringAsync(asset.localUri, { encoding: 'base64' });
+      setBase64(`data:image/png;base64,${base64str}`);
+    }
+    loadBase64();
+  }, []);
+
+  return base64;
+}
 
 function useMarkerIconBase64() {
   const [base64, setBase64] = useState(null);
@@ -20,77 +37,107 @@ function useMarkerIconBase64() {
   return base64;
 }
 
-const createHtml = (isDarkMode, userLocation, markerIconBase64) => `
-<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<style>html, body, #map { height: 100%; margin: 0; padding: 0; position: relative;} ${
-  isDarkMode ? `
-  #greyOverlay {
-    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(7,7,7,0.32);
-    pointer-events: none;
-    z-index: 1000;
-  }
-  `: ''}</style></head><body><div id="map"></div>${isDarkMode ? '<div id="greyOverlay"></div>' : ''}
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script>
-  const tileLayerUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-  const initialLat = ${userLocation?.latitude ?? 37.78825};
-  const initialLng = ${userLocation?.longitude ?? -122.4324};
-  window.map = L.map('map', { zoomControl: false }).setView([initialLat, initialLng], 18);
-  L.tileLayer(tileLayerUrl, { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(window.map);
-  const longPressDuration = 1000;
-  let pressTimer;
-  const markers = [];
-  function addMarker(lat, lng) {
-    const marker = L.marker([lat, lng], {
-      icon: L.icon({
-        iconUrl: '${markerIconBase64 || 'https://cdn-icons-png.flaticon.com/512/64/64113.png'}',
-        iconSize: [30, 30],
-        iconAnchor: [15, 30]
-      })
-    }).addTo(window.map);
-    marker.bindPopup("<b>Selected Location</b>").openPopup();
-    markers.push(marker);
-  }
-  const mapContainer = document.getElementById('map');
-  mapContainer.addEventListener('touchstart', (e) => {
-    pressTimer = setTimeout(() => {
-      const touch = e.touches[0];
-      const point = window.map.containerPointToLatLng([touch.clientX, touch.clientY]);
-      addMarker(point.lat, point.lng);
-      if (window.ReactNativeWebView) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({ lat: point.lat, lng: point.lng }));
+const createHtml = (isDarkMode, userLocation, userMarkerIconBase64, markerIconBase64) => `
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<style>
+  html, body, #map { height: 100%; margin: 0; padding: 0; position: relative; }
+  ${isDarkMode ? `
+    #greyOverlay {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(7,7,7,0.32);
+      pointer-events: none;
+      z-index: 1000;
+    }
+  ` : ''}
+</style>
+</head>
+<body>
+  <div id="map"></div>
+  ${isDarkMode ? '<div id="greyOverlay"></div>' : ''}
+  
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const tileLayerUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    const initialLat = ${userLocation?.latitude ?? 37.78825};
+    const initialLng = ${userLocation?.longitude ?? -122.4324};
+    const desiredZoom = 18;
+    window.map = L.map('map', { zoomControl: false }).setView([initialLat, initialLng], 18);
+    L.tileLayer(tileLayerUrl, { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(window.map);
+
+    let currentUserMarker = null;
+
+    window.placeMarkerAtUserLocation = function(lat, lng) {
+      if (currentUserMarker) {
+        currentUserMarker.setLatLng([lat, lng]);
+      } else {
+        currentUserMarker = L.marker([lat, lng], {
+          icon: L.icon({
+            iconUrl: '${markerIconBase64}',
+            iconSize: [30, 41],
+            iconAnchor: [15, 41]
+          })
+        }).addTo(window.map)
+          .bindPopup("<b>Your Marker</b>")
+          .on('click', function() {
+            window.map.setView(this.getLatLng(), desiredZoom);
+          });
       }
-    }, longPressDuration);
-  });
-  ['touchend', 'touchcancel'].forEach(eventName => {
-    mapContainer.addEventListener(eventName, () => {
-      clearTimeout(pressTimer);
-    });
-  });
-  ${
-    userLocation ? `const userMarker = L.marker([${userLocation.latitude}, ${userLocation.longitude}],{
-      icon: L.icon({
-        iconUrl: '${markerIconBase64 || 'https://cdn-icons-png.flaticon.com/512/64/64113.png'}',
-        iconSize: [30,30],
-        iconAnchor: [15,30]
-      })
-    }).addTo(window.map);
-    userMarker.bindPopup("<b>Your Location</b>").openPopup();` : ''
-  }
-</script>
-</body></html>
+      window.map.panTo([lat, lng]);
+    };
+
+    // Create user marker variable outside conditional for update support
+    let userMarker = null;
+    if (${userLocation ? 'true' : 'false'}) {
+      userMarker = L.marker([${userLocation?.latitude}, ${userLocation?.longitude}], {
+        icon: L.icon({
+          iconUrl: '${userMarkerIconBase64}',
+          iconSize: [37, 37],
+          iconAnchor: [18.5, 30],
+        }),
+        zIndexOffset: 1000
+      }).addTo(window.map).bindPopup("<b>Your Location</b>")
+        .on('click', function() {
+        window.map.setView(this.getLatLng(), desiredZoom);
+      });
+    }
+
+    // Expose function to update user marker position dynamically
+    window.updateUserLocation = function(lat, lng) {
+      if (userMarker) {
+        userMarker.setLatLng([lat, lng]);
+        window.map.panTo([lat, lng]);
+      } else {
+        // If userMarker is not created yet (userLocation initially null), create now
+        userMarker = L.marker([lat, lng], {
+          icon: L.icon({
+            iconUrl: '${userMarkerIconBase64}',
+            iconSize: [37, 37],
+            iconAnchor: [18.5, 37]
+          })
+        }).addTo(window.map);
+        userMarker.bindPopup("<b>Your Location</b>").openPopup();
+        window.map.panTo([lat, lng]);
+      }
+    };
+  </script>
+</body>
+</html>
 `;
 
 const OSMMap = forwardRef(({ mode = 'light', userLocation }, ref) => {
+  const userMarkerIconBase64 = useUserMarkerIconBase64();
   const markerIconBase64 = useMarkerIconBase64();
 
   return (
     <WebView
-      key={mode + (markerIconBase64 ? '1' : '0')} // reload when icon loaded
+      key={mode + (markerIconBase64 ? '1' : '0') + (userLocation ? '1' : '0')} // reload when icon or location changes
       ref={ref}
       originWhitelist={['*']}
-      source={{ html: createHtml(mode === 'dark', userLocation, markerIconBase64) }}
+      source={{ html: createHtml(mode === 'dark', userLocation, userMarkerIconBase64, markerIconBase64) }}
       style={{ flex: 1 }}
       onMessage={event => {
         const data = JSON.parse(event.nativeEvent.data);
