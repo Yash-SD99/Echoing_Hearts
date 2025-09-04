@@ -6,6 +6,8 @@ import ThemeToggle from '../components/ThemeToggle';
 import {auth} from '../utils/firebaseConfig';
 import { createUserWithEmailAndPassword} from 'firebase/auth';
 
+import { db } from "../utils/firebaseConfig";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 export default function SignupStep1() {
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
@@ -14,28 +16,41 @@ export default function SignupStep1() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confPassword, setConfPassword] = useState('');
-  const [phone, setPhone] = useState('');
+ 
+  const [username, setUsername] = useState('');
 
   const styles = isDarkMode ? darkStyles : lightStyles;
 
   const handleNext = async () => {
-  if (!email || !password || !confPassword || !phone) {
+  if (!username||!email || !password || !confPassword ) {
     Alert.alert("Error", "Please fill all fields.");
     return;
   }
+  
   if (password !== confPassword) {
     Alert.alert("Error", "Passwords do not match!");
     return;
   }
+  const usernameDocRef = doc(db, "usernames", username);
+  const usernameDocSnap = await getDoc(usernameDocRef);
 
+  if (usernameDocSnap.exists()) {
+    Alert.alert("Error", "Username already taken. Please choose another.");
+    return;
+  }
+  
   try {
-    // Create user in Firebase Authentication
-    await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userId = userCredential.user.uid;
 
+    // 2️⃣ Save username mapping
+    await setDoc(doc(db, "usernames", username), { uid: userId });
+    
+    
     // Navigate to SignupStep2 with params
     router.push({
       pathname: '/signup2',
-      params: { email, phone },
+      params: { username,email},
     });
   } catch (error) {
     Alert.alert("Signup Failed", error.message);
@@ -52,6 +67,13 @@ export default function SignupStep1() {
       </View>
 
       <Text style={styles.subtitle}>Sign Up</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Username*"
+        value={username}
+        onChangeText={setUsername}
+        placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
+      />
 
       <TextInput
         style={styles.input}
@@ -76,14 +98,6 @@ export default function SignupStep1() {
         secureTextEntry
         value={confPassword}
         onChangeText={setConfPassword}
-        placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Phone Number*"
-        keyboardType="phone-pad"
-        value={phone}
-        onChangeText={setPhone}
         placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
       />
 
