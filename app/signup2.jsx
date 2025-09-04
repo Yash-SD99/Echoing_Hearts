@@ -11,7 +11,7 @@ export default function SignupStep2() {
   const router = useRouter();
   const { theme } = useContext(ThemeContext);
   const isDarkMode = theme === 'dark';
-  const { email, phone } = useLocalSearchParams();
+  const { username,email} = useLocalSearchParams();
   
   const [gender, setGender] = useState('');
   const [city, setCity] = useState('');
@@ -28,8 +28,8 @@ export default function SignupStep2() {
   try {
     const userId = auth.currentUser.uid;
     await setDoc(doc(db, "users", userId), {
+      username, 
       email,
-      phone,
       gender,
       city,
       stateCountry,
