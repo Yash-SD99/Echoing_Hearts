@@ -2,8 +2,8 @@
 import React, { createContext, useState, useContext } from 'react';
 
 const themes = {
-  light: { c1: '#FFFFFF', c2: '#000000'},
-  dark: { c1: '#000000', c2: '#FFFFFF'},
+  light: { c1: '#FFECEC', c2: '#3C3C43'},
+  dark: { c1: '#3C3C43', c2: '#FFECEC'},
 };
 
 const ThemeContext = createContext();

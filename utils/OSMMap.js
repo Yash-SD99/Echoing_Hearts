@@ -37,7 +37,7 @@ function useMarkerIconBase64() {
   return base64;
 }
 
-const createHtml = (isDarkMode, userLocation, userMarkerIconBase64, markerIconBase64) => `
+const createHtml = (isDarkMode, userLocation, userMarkerIconBase64, markerIconBase64, markers) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -65,32 +65,28 @@ const createHtml = (isDarkMode, userLocation, userMarkerIconBase64, markerIconBa
     const initialLat = ${userLocation?.latitude ?? 37.78825};
     const initialLng = ${userLocation?.longitude ?? -122.4324};
     const desiredZoom = 18;
+
     window.map = L.map('map', { zoomControl: false }).setView([initialLat, initialLng], 18);
     L.tileLayer(tileLayerUrl, { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(window.map);
 
-    let currentUserMarker = null;
+    // Render markers from Firebase
+    const markerLocations = ${JSON.stringify(markers)};
 
-    window.placeMarkerAtUserLocation = function(lat, lng) {
-      if (currentUserMarker) {
-        currentUserMarker.setLatLng([lat, lng]);
-      } else {
-        currentUserMarker = L.marker([lat, lng], {
-          icon: L.icon({
-            iconUrl: '${markerIconBase64}',
-            iconSize: [30, 41],
-            iconAnchor: [15, 41]
-          })
-        }).addTo(window.map)
-          .bindPopup("<b>Your Marker</b>")
-          .on('click', function() {
-            window.map.setView(this.getLatLng(), desiredZoom);
-          });
-      }
-      window.map.panTo([lat, lng]);
-    };
+    markerLocations.forEach(loc => {
+      L.marker([loc.latitude, loc.longitude], {
+        icon: L.icon({
+          iconUrl: '${markerIconBase64}',
+          iconSize: [30, 41],
+          iconAnchor: [15, 41]
+        }),
+      }).addTo(window.map)
+        .bindPopup(\`<b>\${loc.text}</b><br>by \${loc.username}\`);
+    });
 
     // Create user marker variable outside conditional for update support
-    let userMarker = null;
+    let userMarker = null;  
+    let firstUpdate = true;  
+
     if (${userLocation ? 'true' : 'false'}) {
       userMarker = L.marker([${userLocation?.latitude}, ${userLocation?.longitude}], {
         icon: L.icon({
@@ -101,17 +97,18 @@ const createHtml = (isDarkMode, userLocation, userMarkerIconBase64, markerIconBa
         zIndexOffset: 1000
       }).addTo(window.map).bindPopup("<b>Your Location</b>")
         .on('click', function() {
-        window.map.setView(this.getLatLng(), desiredZoom);
-      });
+          window.map.setView(this.getLatLng(), desiredZoom);
+        });
     }
 
-    // Expose function to update user marker position dynamically
     window.updateUserLocation = function(lat, lng) {
       if (userMarker) {
         userMarker.setLatLng([lat, lng]);
-        window.map.panTo([lat, lng]);
+        if (firstUpdate) {
+          window.map.panTo([lat, lng]);
+          firstUpdate = false;
+        }
       } else {
-        // If userMarker is not created yet (userLocation initially null), create now
         userMarker = L.marker([lat, lng], {
           icon: L.icon({
             iconUrl: '${userMarkerIconBase64}',
@@ -121,29 +118,32 @@ const createHtml = (isDarkMode, userLocation, userMarkerIconBase64, markerIconBa
         }).addTo(window.map);
         userMarker.bindPopup("<b>Your Location</b>").openPopup();
         window.map.panTo([lat, lng]);
+        firstUpdate = false;
       }
     };
+
   </script>
 </body>
 </html>
 `;
 
-const OSMMap = forwardRef(({ mode = 'light', userLocation }, ref) => {
+const OSMMap = forwardRef(({ mode = 'light', userLocation, markers = [] }, ref) => {
   const userMarkerIconBase64 = useUserMarkerIconBase64();
   const markerIconBase64 = useMarkerIconBase64();
 
   return (
     <WebView
-      key={mode + (markerIconBase64 ? '1' : '0') + (userLocation ? '1' : '0')} // reload when icon or location changes
+      key={mode + (markerIconBase64 ? '1' : '0') + (markers.length ? '1' : '0')} // reload when icon or location changes
       ref={ref}
       originWhitelist={['*']}
-      source={{ html: createHtml(mode === 'dark', userLocation, userMarkerIconBase64, markerIconBase64) }}
+      source={{ html: createHtml(mode === 'dark', userLocation, userMarkerIconBase64, markerIconBase64, markers) }}
       style={{ flex: 1 }}
       onMessage={event => {
         const data = JSON.parse(event.nativeEvent.data);
         console.log('User placed marker at:', data.lat, data.lng);
         // You can update React Native state, call API, etc.
       }}
+
     />
   );
 });

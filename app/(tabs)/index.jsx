@@ -5,11 +5,14 @@ import OSMMap from '../../utils/OSMMap'; // Adjust path
 import plusIcon from '../../assets/plus.png';  // Adjust path
 import minusIcon from '../../assets/minus.png'; // Adjust path
 import { useTheme } from '../../utils/themeContext'; // Adjust path
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../utils/firebaseConfig';  // Adjust path to your config
 
 export default function Map() {
   const { mode } = useTheme();
   const webviewRef = useRef(null);
   const [userLocation, setUserLocation] = useState(null);
+  const [markers, setMarkers] = useState([]);
 
   useEffect(() => {
     let subscription;
@@ -47,6 +50,25 @@ export default function Map() {
           }
         }
       );
+
+      async function loadMarkers() {
+        try {
+          const snapshot = await getDocs(collection(db, 'whispers'));
+          const loadedMarkers = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              latitude: data.Location.latitude,
+              longitude: data.Location.longitude,
+              text: data.text,
+              username: data.username,
+            };
+          });
+          setMarkers(loadedMarkers);
+        } catch (error) {
+          console.error('Error fetching whispers:', error);
+        }
+      }
+      loadMarkers();
     })();
 
     return () => {
@@ -76,7 +98,7 @@ export default function Map() {
 
   return (
     <View style={styles.container}>
-      <OSMMap ref={webviewRef} mode={mode} userLocation={userLocation} />
+      <OSMMap ref={webviewRef} mode={mode} userLocation={userLocation} markers={markers}/>
       <View style={styles.controls}>
         <TouchableOpacity onPress={zoomIn}>
           <Image source={plusIcon} style={styles.icon} />
@@ -108,7 +130,7 @@ const styles = StyleSheet.create({
   },
   addWhis: {
     position: 'absolute',
-    backgroundColor: 'tarnsparent',
+    backgroundColor: 'transparent',
     left: 15,
     bottom: 150
   },
