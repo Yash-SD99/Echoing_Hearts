@@ -13,7 +13,7 @@ function useUserMarkerIconBase64() {
       const asset = Asset.fromModule(userMarkerImage);
       await asset.downloadAsync();
       const base64str = await FileSystem.readAsStringAsync(asset.localUri, { encoding: 'base64' });
-      setBase64(`data:image/png;base64,${base64str}`);
+       setBase64(`data:image/png;base64,${base64str}`);
     }
     loadBase64();
   }, []);
@@ -66,22 +66,40 @@ const createHtml = (isDarkMode, userLocation, userMarkerIconBase64, markerIconBa
     const initialLng = ${userLocation?.longitude ?? -122.4324};
     const desiredZoom = 18;
 
-    window.map = L.map('map', { zoomControl: false }).setView([initialLat, initialLng], 18);
+    window.map = L.map('map', { zoomControl: false }).setView([initialLat, initialLng], desiredZoom);
     L.tileLayer(tileLayerUrl, { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(window.map);
 
     // Render markers from Firebase
     const markerLocations = ${JSON.stringify(markers)};
 
     markerLocations.forEach(loc => {
-      L.marker([loc.latitude, loc.longitude], {
-        icon: L.icon({
-          iconUrl: '${markerIconBase64}',
-          iconSize: [30, 41],
-          iconAnchor: [15, 41]
-        }),
-      }).addTo(window.map)
-        .bindPopup(\`<b>\${loc.text}</b><br>by \${loc.username}\`);
-    });
+  const marker = L.marker([loc.latitude, loc.longitude], {
+    icon: L.icon({
+      iconUrl: '${markerIconBase64}',
+      iconSize: [30, 41],
+      iconAnchor: [15, 41]
+    }),
+  }).addTo(window.map)
+    // .bindPopup(\`
+    //   <div style="min-width:150px;">
+    //     <b>\${loc.title || "Untitled"}</b><br>
+    //     <p>\${loc.text || ""}</p>
+    //     <small>by \${loc.username || "Anonymous"}</small><br>
+    //     👍 \${loc.likes ?? 0} | 👎 \${loc.dislikes ?? 0}
+    //   </div>
+    // \`);
+
+  // ✅ Add click listener to send coordinates to React Native
+  marker.on('click', function() {
+    window.ReactNativeWebView.postMessage(JSON.stringify({
+      latitude: loc.latitude,
+      longitude: loc.longitude
+    }));
+  });
+});
+
+
+
 
     // Create user marker variable outside conditional for update support
     let userMarker = null;  
@@ -127,23 +145,22 @@ const createHtml = (isDarkMode, userLocation, userMarkerIconBase64, markerIconBa
 </html>
 `;
 
-const OSMMap = forwardRef(({ mode = 'light', userLocation, markers = [] }, ref) => {
+const OSMMap = forwardRef(({ mode = 'light', userLocation, markers = [], onMarkerPress }, ref) => {
   const userMarkerIconBase64 = useUserMarkerIconBase64();
   const markerIconBase64 = useMarkerIconBase64();
 
   return (
     <WebView
-      key={mode + (markerIconBase64 ? '1' : '0') + (markers.length ? '1' : '0')} // reload when icon or location changes
+      key={mode + (markerIconBase64 ? '1' : '0') + (markers.length ? '1' : '0')}
       ref={ref}
       originWhitelist={['*']}
       source={{ html: createHtml(mode === 'dark', userLocation, userMarkerIconBase64, markerIconBase64, markers) }}
       style={{ flex: 1 }}
       onMessage={event => {
         const data = JSON.parse(event.nativeEvent.data);
-        console.log('User placed marker at:', data.lat, data.lng);
-        // You can update React Native state, call API, etc.
+        // ✅ Call parent callback if defined
+        if (onMarkerPress) onMarkerPress(data);
       }}
-
     />
   );
 });

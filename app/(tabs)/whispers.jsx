@@ -1,150 +1,203 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, FlatList, TouchableOpacity, Image } from 'react-native';
-import { useTheme } from '../../utils/themeContext';  // adjust path as needed
+import { useTheme } from '../../utils/themeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-
-const whispers = [
-  { id: '1', title: 'Alice', lastMessage: 'Page 1 Artificial Intelligence (AI) has rapidly transformed from a futuristic concept into a daily reality. What once existed only in the imagination of science fiction writers is now an active part of industries ranging from healthcare and education to finance and entertainment. AI systems are designed to analyze data, recognize patterns, and make decisions at speeds and scales far beyond human capabilities. This ability has opened doors to innovation that seemed impossible just a few decades ago.Page 2One of the most significant impacts of AI is in healthcare. AI-powered algorithms assist doctors in diagnosing diseases with high accuracy, predicting patient outcomes, and even recommending personalized treatment plans. Medical imaging, for instance, has seen remarkable improvements thanks to AI’s ability to detect anomalies that human eyes might miss. Beyond diagnostics, AI is also playing a role in drug discovery, making it faster and more cost-effective to develop new medicines.Page 3Education has also benefited greatly from the rise of AI. Personalized learning platforms use intelligent systems to adapt content to a student’s pace and style of learning. This creates a more engaging experience and helps ensure that students don’t fall behind. Additionally, AI-powered language tools are breaking barriers, allowing people from different parts of the world to communicate seamlessly and access knowledge in ways that were previously inaccessible.Page 4Despite its many benefits, AI brings challenges and ethical considerations. Concerns about job automation, privacy, and algorithmic bias continue to spark debates worldwide. While AI can enhance human capabilities, it must be developed and deployed responsibly. The future of AI will depend not only on technological advancements but also on how societies choose to balance innovation with fairness and accountability. What is certain, however, is that AI will continue to shape the future in profound and lasting ways.', time: '10:15 AM' },
-  { id: '2', title: 'Bob', lastMessage: 'Are you coming?', time: '9:45 AM' },
-  { id: '3', title: 'Charlie', lastMessage: 'Let’s meet up!', time: 'Yesterday' },
-  { id: '4', title: 'Alice', lastMessage: 'Hey, how are you?', time: '10:15 AM' },
-  { id: '5', title: 'Bob', lastMessage: 'Are you coming?', time: '9:45 AM' },
-  { id: '6', title: 'Charlie', lastMessage: 'Let’s meet up!', time: 'Yesterday' },
-  { id: '7', title: 'Alice', lastMessage: 'Hey, how are you?', time: '10:15 AM' },
-  { id: '8', title: 'Bob', lastMessage: 'Are you coming?', time: '9:45 AM' },
-  { id: '9', title: 'Charlie', lastMessage: 'Let’s meet up!', time: 'Yesterday' },
-  { id: '10', title: 'Alice', lastMessage: 'Hey, how are you?', time: '10:15 AM' },
-  { id: '11', title: 'Bob', lastMessage: 'Are you coming?', time: '9:45 AM' },
-  { id: '12', title: 'Charlie', lastMessage: 'Let’s meet up!', time: 'Yesterday' },
-  { id: '13', title: 'Alice', lastMessage: 'Hey, how are you?', time: '10:15 AM' },
-  { id: '14', title: 'Bob', lastMessage: 'Are you coming?', time: '9:45 AM' },
-  { id: '15', title: 'Charlie', lastMessage: 'Let’s meet up!', time: 'Yesterday' },
-];
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { collection, getDocs, doc, updateDoc, increment } from 'firebase/firestore'; // ← added updateDoc & increment
+import { db } from '../../utils/firebaseConfig';
 
 const Whispers = () => {
-  const { theme, mode, toggleTheme } = useTheme();
-
+  const { theme } = useTheme();
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const { latitude, longitude } = params;
+
+  const [whispers, setWhispers] = useState([]);
+
+  // Fetch whispers for this location from Firestore
+  useEffect(() => {
+    if (!latitude || !longitude) return;
+
+    async function fetchWhispers() {
+      try {
+        const snapshot = await getDocs(collection(db, 'whispers'));
+        let loaded = [];
+
+        for (const docItem of snapshot.docs) {
+          const data = docItem.data();
+          if (!data?.Location) continue;
+
+          if (parseFloat(data.Location.latitude) === parseFloat(latitude) &&
+              parseFloat(data.Location.longitude) === parseFloat(longitude)) {
+            
+            const wSnap = await getDocs(collection(db, 'whispers', docItem.id, 'w'));
+            wSnap.forEach(wDoc => {
+              const wData = wDoc.data();
+              loaded.push({
+                id: wDoc.id,
+                parentId: docItem.id, // ← needed to update subcollection
+                title: wData.title || 'Untitled',
+                lastMessage: wData.text || '',
+                username: wData.username || 'Anonymous',
+                likes: wData.likes || 0,
+                dislikes: wData.dislikes || 0,
+                time: wData.createdAt?.toDate?.()?.toLocaleTimeString() || ''
+              });
+            });
+          }
+        }
+
+        setWhispers(loaded);
+      } catch (err) {
+        console.error('Error fetching whispers:', err);
+      }
+    }
+
+    fetchWhispers();
+  }, [latitude, longitude]);
 
   const openChat = (item) => {
     router.push({
       pathname: '../WhisperDetail',
-      params: { id: item.id, title: item.title, message: item.lastMessage, image: item.image, likes: item.likes, dislikes: item.dislikes },
+      params: {
+        id: item.id,
+        title: item.title,
+        message: item.lastMessage,
+        likes: item.likes,
+        dislikes: item.dislikes,
+        username: item.username
+      },
     });
   };
 
+  // ← New function: handle like/dislike
+  // ----------------------
+// Updated handleReaction
+// ----------------------
+const handleReaction = async (item, type) => {
+  const userId = auth.currentUser.uid; // ← NEW: get current user's UID
+  const wDocRef = doc(db, 'whispers', item.parentId, 'w', item.id); // ← no change
+
+  if (type === 'like') {
+    // ← NEW: only add like if user hasn't liked yet
+    if (!item.likes.includes(userId)) {
+      await updateDoc(wDocRef, {
+        likes: arrayUnion(userId),      // ← NEW: add user to likes array
+        dislikes: arrayRemove(userId)   // ← NEW: remove from dislikes if switching
+      });
+
+      // ← NEW: update local state with arrays
+      setWhispers(prev => prev.map(w => 
+        w.id === item.id 
+          ? { 
+              ...w, 
+              likes: [...w.likes, userId], 
+              dislikes: w.dislikes.filter(id => id !== userId) 
+            } 
+          : w
+      ));
+    }
+  } else if (type === 'dislike') {
+    // ← NEW: only add dislike if user hasn't disliked yet
+    if (!item.dislikes.includes(userId)) {
+      await updateDoc(wDocRef, {
+        dislikes: arrayUnion(userId),  // ← NEW: add user to dislikes array
+        likes: arrayRemove(userId)     // ← NEW: remove from likes if switching
+      });
+
+      // ← NEW: update local state with arrays
+      setWhispers(prev => prev.map(w => 
+        w.id === item.id 
+          ? { 
+              ...w, 
+              dislikes: [...w.dislikes, userId], 
+              likes: w.likes.filter(id => id !== userId) 
+            } 
+          : w
+      ));
+    }
+  }
+};
+
+
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.whisperButton} onPress={() => openChat(item)}>
-      <Image source={require('../../assets/images/globe.png')} style={styles.image}></Image>
-
-      <View style= {styles.content}>
-        <Text style={styles.title} numberOfLines={1} ellipsizeMode='tail'>{item.title}</Text>
-        <Text style={styles.message} numberOfLines={1} ellipsizeMode='tail'>{item.lastMessage}</Text>
-
+      <Image source={require('../../assets/images/globe.png')} style={styles.image} />
+      <View style={styles.content}>
+        <Text style={styles.title} numberOfLines={1}>{item.title} by {item.username}</Text>
+        <Text style={styles.message} numberOfLines={1}>{item.lastMessage}</Text>
         <View style={{ flexDirection: 'row', marginTop: 4 }}>
-          {/* Likes */}
-          <View style={styles.reactionRow}>
+          <TouchableOpacity onPress={() => handleReaction(item, 'like')} style={styles.reactionRow}>
             <Image source={require('../../assets/likes.png')} style={styles.reaction} />
             <Text style={styles.reactionText}>{item.likes}</Text>
-          </View>
-          {/* Dislikes */}
-          <View style={[styles.reactionRow, { marginLeft: 16 }]}>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => handleReaction(item, 'dislike')} style={[styles.reactionRow, { marginLeft: 16 }]}>
             <Image source={require('../../assets/dislikes.png')} style={styles.reaction} />
             <Text style={styles.reactionText}>{item.dislikes}</Text>
-          </View>
+          </TouchableOpacity>
         </View>
-
       </View>
       <Text style={styles.time}>{item.time}</Text>
     </TouchableOpacity>
   );
 
   return (
-    <View style={[{flex: 1} , {backgroundColor: theme.c1}]}>
+    <View style={[{ flex: 1 }, { backgroundColor: theme.c1 }]}>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <Text>Mystery Makers</Text>
+          <Text>Whispers at this location</Text>
         </View>
-        <FlatList
-          data={whispers} 
-          keyExtractor={(item) => item.id} 
-          renderItem={renderItem} 
-          ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-        />
-        <View style={{height : 80}}></View>
+
+        {!latitude || !longitude ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={{ fontSize: 18, color: '#555', textAlign: 'center' }}>
+              Please select a marker on the map to see whispers.
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={whispers}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+          />
+        )}
+
+        <View style={{ height: 80 }} />
       </SafeAreaView>
     </View>
   );
-}
+};
 
 export default Whispers;
 
 const styles = StyleSheet.create({
-    whisperButton: {
-      height: 100,
-      width: '100%',
-      backgroundColor: '#39bcd3ff',
-      borderRadius: 23,
-      padding: 10,
-      flexDirection: 'row',
-      alignItems: 'center'
-    },
-
-    header: {
-      height: 80,            // Set your desired height
-      width: '100%',         // Match parent width
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: '#f3a6a6ff', // Optional: for contrast
-      borderRadius: 16,        // Optional: rounded header
-      marginBottom: 8,         // Space between header and list
-    },
-
-    text: {
-        fontSize: 20
-    },
-
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        width: '100%',
-        paddingHorizontal: 10,
-    },
-
-    image: {
-      height: 75,
-      width: 75,
-      borderRadius: 75,
-      overflow: 'hidden',
-      marginRight: 10,
-    },
-
-    reactionRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    reaction: {
-      height: 20,
-      width: 20,
-      borderRadius: 20
-    },
-    reactionText: {
-      fontSize: 14,
-      color: '#333',
-      marginLeft: 4,
-    },
-
-    content: {
-      flex: 1,
-      marginRight: 10,
-    },
-    title: {
-      fontWeight: 'bold',
-      fontSize: 24,
-    },
-
-    message: {
-      fontSize: 18
-    }
+  whisperButton: {
+    height: 100,
+    width: '100%',
+    backgroundColor: '#39bcd3ff',
+    borderRadius: 23,
+    padding: 10,
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  header: {
+    height: 80,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f3a6a6ff',
+    borderRadius: 16,
+    marginBottom: 8,
+  },
+  container: { flex: 1, justifyContent: 'center', width: '100%', paddingHorizontal: 10 },
+  image: { height: 75, width: 75, borderRadius: 75, overflow: 'hidden', marginRight: 10 },
+  reactionRow: { flexDirection: 'row', alignItems: 'center' },
+  reaction: { height: 20, width: 20, borderRadius: 20 },
+  reactionText: { fontSize: 14, color: '#333', marginLeft: 4 },
+  content: { flex: 1, marginRight: 10 },
+  title: { fontWeight: 'bold', fontSize: 24 },
+  message: { fontSize: 18 },
+  time: { fontSize: 12, color: '#555' },
 });
