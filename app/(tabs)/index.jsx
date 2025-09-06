@@ -116,6 +116,7 @@ export default function Map() {
     webviewRef.current?.injectJavaScript('window.map.zoomOut(); true;');
   };
 
+
   return (
     <View style={styles.container}>
       {/* ✅ Pass updated markers with text, title, username */}
@@ -152,6 +153,7 @@ export default function Map() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1 },

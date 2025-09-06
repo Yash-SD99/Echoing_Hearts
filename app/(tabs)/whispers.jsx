@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, FlatList, TouchableOpacity, Image } from 'react-native';
 import { useTheme } from '../../utils/themeContext';
@@ -170,9 +171,12 @@ const handleReaction = async (item, type) => {
   );
 };
 
+
 export default Whispers;
 
 const styles = StyleSheet.create({
+
+
   whisperButton: {
     height: 100,
     width: '100%',
@@ -201,3 +205,4 @@ const styles = StyleSheet.create({
   message: { fontSize: 18 },
   time: { fontSize: 12, color: '#555' },
 });
+

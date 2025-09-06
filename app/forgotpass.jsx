@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemeContext } from '../context/ThemeContext';
@@ -27,6 +28,7 @@ export default function ForgotPass() {
     }
   };
 
+
   return (
     <View style={styles.container}>
       <ThemeToggle />
@@ -48,6 +50,7 @@ export default function ForgotPass() {
       />
 
       <View style={styles.buttonRow}>
+
         <TouchableOpacity
           style={[styles.button, styles.backButton]}
           onPress={() => router.back()}
@@ -61,6 +64,7 @@ export default function ForgotPass() {
           disabled={!email}
         >
           <Text style={styles.buttonText}>Send Reset Email →</Text>
+
         </TouchableOpacity>
       </View>
     </View>

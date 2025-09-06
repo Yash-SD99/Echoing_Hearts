@@ -11,12 +11,19 @@ function InnerLayout() {
       <StatusBar
         barStyle={theme.c1 === '#000000' ? 'light-content' : 'dark-content'}
       />
-      <Stack>
-        <Stack.Screen
-          name="(tabs)"
-          options={{ headerShown: false }}
-        />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="login" />
+        <Stack.Screen name="email"/>
+        <Stack.Screen name="forgotpass"/>
+        <Stack.Screen name="passotp"/>
+        <Stack.Screen name="phone"/>
+        <Stack.Screen name="phoneotp"/>
+        <Stack.Screen name="signup1"/>
+        <Stack.Screen name="signup2"/>
+        <Stack.Screen name="signup3"/>
       </Stack>
+
     </>
   );
 }

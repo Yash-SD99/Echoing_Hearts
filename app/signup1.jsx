@@ -1,4 +1,11 @@
 import React, { useState, useContext } from 'react';
+
+
+// export default function SignupStep1() {
+//   const router = useRouter();
+//   const { mode } = useTheme();
+// const isDarkMode = mode === 'dark';
+
 import { View, Text, TextInput, TouchableOpacity, StyleSheet,Button,Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemeContext } from '../context/ThemeContext';
@@ -13,9 +20,11 @@ export default function SignupStep1() {
   const { theme } = useContext(ThemeContext);
   const isDarkMode = theme === 'dark';
 
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confPassword, setConfPassword] = useState('');
+
  
   const [username, setUsername] = useState('');
 
@@ -58,6 +67,7 @@ export default function SignupStep1() {
 };
 
 
+
   return (
     <View style={styles.container}>
       <ThemeToggle />
@@ -67,6 +77,7 @@ export default function SignupStep1() {
       </View>
 
       <Text style={styles.subtitle}>Sign Up</Text>
+
       <TextInput
         style={styles.input}
         placeholder="Username*"
@@ -74,6 +85,7 @@ export default function SignupStep1() {
         onChangeText={setUsername}
         placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
       />
+
 
       <TextInput
         style={styles.input}
@@ -101,12 +113,15 @@ export default function SignupStep1() {
         placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
       />
 
+
       <View style={styles.buttonRow}>
         <TouchableOpacity style={[styles.button, styles.backButton]} onPress={() => router.back()}>
           <Text style={styles.buttonText}>← BACK</Text>
         </TouchableOpacity>
 
+
         <TouchableOpacity style={styles.button} onPress={handleNext}>
+
           <Text style={styles.buttonText}>NEXT →</Text>
         </TouchableOpacity>
       </View>

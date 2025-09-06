@@ -1,13 +1,18 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ThemeContext } from '../context/ThemeContext';
+
+import { useTheme } from '../utils/themeContext';
+
 import ThemeToggle from '../components/ThemeToggle';
 
 export default function PhoneOtp() {
   const router = useRouter();
-  const { theme } = useContext(ThemeContext);
-  const isDarkMode = theme === 'dark';
+
+  const { mode } = useTheme();
+const isDarkMode = mode === 'dark';
+
+
 
   const [otp, setOtp] = useState('');
 

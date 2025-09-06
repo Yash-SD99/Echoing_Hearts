@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+
 import { View, Text, TextInput, TouchableOpacity, StyleSheet,Alert} from 'react-native';
 import { Tabs, useRouter } from 'expo-router';
 import { ThemeContext } from '../context/ThemeContext';
@@ -11,10 +12,12 @@ export default function EmailLogin() {
   const { theme } = useContext(ThemeContext);
   const isDarkMode = theme === 'dark';
 
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const styles = isDarkMode ? darkStyles : lightStyles;
+
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -34,6 +37,7 @@ export default function EmailLogin() {
       Alert.alert("Login failed", msg);
     }
   }
+
 
   return (
     <View style={styles.container}>
@@ -70,7 +74,9 @@ export default function EmailLogin() {
         <TouchableOpacity style={[styles.button, styles.backButton]} onPress={() => router.back()}>
           <Text style={styles.buttonText}>← BACK</Text>
         </TouchableOpacity>
+
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
+
           <Text style={styles.buttonText}>LOGIN →</Text>
         </TouchableOpacity>
       </View>
@@ -167,4 +173,6 @@ const darkStyles = StyleSheet.create({
   forgotContainer: { alignItems: 'flex-end', marginTop: 6, marginRight: 10 },
   forgotText: { fontSize: 15, color: '#F5F5F5' },
   forgotLink: { fontWeight: 'bold', color: '#D65151', textDecorationLine: 'underline' },
+
 });
+
