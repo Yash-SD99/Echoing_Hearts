@@ -15,8 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTheme } from '../../utils/themeContext';
 import { useRouter } from "expo-router";
-import { auth,db } from '../../utils/firebaseConfig'; // assuming you have firebase auth
-import { doc,getDoc } from "firebase/firestore";
+import { auth, db } from '../../utils/firebaseConfig'; // assuming you have firebase auth
+import { doc, getDoc } from "firebase/firestore";
 import profilePics from "../../constants/profilePics";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const TAB_BAR_HEIGHT = 75;
@@ -25,13 +25,13 @@ const TAB_BAR_MARGIN_BOTTOM = 25;
 const demoInterests = [
   { label: "Sports" },
   { label: "Movies" },
-  { label: "Food",  },
+  { label: "Food", },
   { label: "Video Games" },
-  { label: "Go-Karting"},
+  { label: "Go-Karting" },
   { label: "Travelling" },
 ];
 
-export default function Profile() {
+const Profile = () => {
   const router = useRouter();
   const [page, setPage] = useState(0);
   const { theme, mode, toggleTheme } = useTheme();
@@ -41,31 +41,32 @@ export default function Profile() {
   const imageSource = profilePics[userData?.profilePic] || profilePics.male;
 
   const handleLogout = async () => {
-  try {
-    await auth.signOut();
-    setUser(null); // optional, onAuthStateChanged will update automatically
-  } catch (error) {
-    console.error("Logout failed:", error);
-  }
-};
-  useEffect(() => {
-  const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
-    setUser(currentUser); // set auth user
-    if (currentUser) {
-      try {
-        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-        if (userDoc.exists()) {
-          setUserData(userDoc.data()); // set Firestore data
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    } else {
-      setUserData(null);
+    try {
+      await auth.signOut();
+      setUser(null); // optional, onAuthStateChanged will update automatically
+    } catch (error) {
+      console.error("Logout failed:", error);
     }
-  });
-  return () => unsubscribe();
-}, []);
+  };
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
+      setUser(currentUser); // set auth user
+      if (currentUser) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          if (userDoc.exists()) {
+            setUserData(userDoc.data()); // set Firestore data
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      } else {
+        setUserData(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
 
   const handleScroll = (event) => {
@@ -105,177 +106,180 @@ export default function Profile() {
   return (
     <View style={[styles.container, { backgroundColor }]}>
 
-//     <SafeAreaView style={[styles.container, { backgroundColor }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor }]}>
 
-      <StatusBar barStyle={mode === 'light' ? 'dark-content' : 'light-content'} backgroundColor={mode === 'light' ? '#ff7e5f' : '#1A1A1A'} />
-      
-      <LinearGradient 
-        colors={mode === 'light' ? ["#ff7e5f", "#feb47b"] : ["#1A1A1A", "#2D2D2D"]} 
-        start={{x: 0, y: 0}} 
-        end={{x: 1, y: 0}}
-        style={styles.header}
-      >
-        <Text style={[styles.headerTitle, { color: '#FFFFFF' }]}>Mystery Makers</Text>
-        <View style={styles.headerRight}>
-          <TouchableOpacity onPress={toggleTheme} style={styles.themeToggle}>
-            <Ionicons 
-              name={mode === 'light' ? 'moon' : 'sunny'} 
-              size={24} 
-              color="#fff" 
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.settingsIcon}>
-            <Ionicons name="settings" size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+        <StatusBar barStyle={mode === 'light' ? 'dark-content' : 'light-content'} backgroundColor={mode === 'light' ? '#ff7e5f' : '#1A1A1A'} />
 
-      <ScrollView 
-        style={styles.mainScrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: TAB_BAR_HEIGHT + TAB_BAR_MARGIN_BOTTOM + 30 }
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-       <View style={styles.avatarContainer}>
-          <View style={[styles.avatarWrapper, { borderColor: cardBackground }]}>
-            <Image
-              source={imageSource}
-              style={styles.avatar}
-            />
-            <TouchableOpacity style={[styles.editIcon, { backgroundColor: mode === 'light' ? '#ff7e5f' : '#4A4A4A' }]}
-            onPress={()=>router.push('../changeprofilepic')}>
-              <Ionicons name="create" size={18} color="#fff" />
+        <LinearGradient
+          colors={mode === 'light' ? ["#ff7e5f", "#feb47b"] : ["#1A1A1A", "#2D2D2D"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.header}
+        >
+          <Text style={[styles.headerTitle, { color: '#FFFFFF' }]}>Mystery Makers</Text>
+          <View style={styles.headerRight}>
+            <TouchableOpacity onPress={toggleTheme} style={styles.themeToggle}>
+              <Ionicons
+                name={mode === 'light' ? 'moon' : 'sunny'}
+                size={24}
+                color="#fff"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.settingsIcon}>
+              <Ionicons name="settings" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
-          <Text style={[styles.username, { color: textColor }]}>{`@${userData?.username}` || '---'}</Text>
-        </View>
-
-        <Text style={[styles.profileTitle, { color: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]}>{`${userData?.displayName}'s Profile`||'---'}</Text>
-
-        <View style={styles.dotContainer}>
-          <View style={[styles.dot, page === 0 && [styles.activeDot, { backgroundColor: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]]} />
-          <View style={[styles.dot, page === 1 && [styles.activeDot, { backgroundColor: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]]} />
-        </View>
+        </LinearGradient>
 
         <ScrollView
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-          style={[styles.horizScroll, { height: 420 }]}
+          style={styles.mainScrollView}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: TAB_BAR_HEIGHT + TAB_BAR_MARGIN_BOTTOM + 30 }
+          ]}
+          showsVerticalScrollIndicator={false}
         >
-          {/* Panel 1: Personal Info */}
-          <View style={[styles.page, { width: SCREEN_WIDTH - 40, backgroundColor: cardBackground }]}>
-            <View style={styles.infoItem}>
-              <Ionicons name="person" size={20} color={mode === 'light' ? '#ff7e5f' : '#FF9F7F'} style={styles.infoIcon} />
-              <View>
-                <Text style={[styles.label, { color: mode === 'light' ? '#888' : '#AAA' }]}>Name</Text>
-                <Text style={[styles.value, { color: textColor }]}>{userData?.Name || '---'}</Text>
-              </View>
+          <View style={styles.avatarContainer}>
+            <View style={[styles.avatarWrapper, { borderColor: cardBackground }]}>
+              <Image
+                source={imageSource}
+                style={styles.avatar}
+              />
+              <TouchableOpacity style={[styles.editIcon, { backgroundColor: mode === 'light' ? '#ff7e5f' : '#4A4A4A' }]}
+                onPress={() => router.push('../changeprofilepic')}>
+                <Ionicons name="create" size={18} color="#fff" />
+              </TouchableOpacity>
             </View>
-            
-            <View style={styles.infoItem}>
-              <Ionicons name="male-female" size={20} color={mode === 'light' ? '#ff7e5f' : '#FF9F7F'} style={styles.infoIcon} />
-              <View>
-                <Text style={[styles.label, { color: mode === 'light' ? '#888' : '#AAA' }]}>Gender</Text>
-                <Text style={[styles.value, { color: textColor }]}>{userData?.gender || '---'}</Text>
-              </View>
-            </View>
-            
-            <View style={styles.infoItem}>
-              <Ionicons name="calendar" size={20} color={mode === 'light' ? '#ff7e5f' : '#FF9F7F'} style={styles.infoIcon} />
-              <View>
-                <Text style={[styles.label, { color: mode === 'light' ? '#888' : '#AAA' }]}>Age</Text>
-                <Text style={[styles.value, { color: textColor }]}>{userData?.Age || '---'}</Text>
-              </View>
-            </View>
-            
-            <View style={styles.infoItem}>
-              <Ionicons name="resize" size={20} color={mode === 'light' ? '#ff7e5f' : '#FF9F7F'} style={styles.infoIcon} />
-              <View>
-                <Text style={[styles.label, { color: mode === 'light' ? '#888' : '#AAA' }]}>Height(cm)</Text>
-                <Text style={[styles.value, { color: textColor }]}>{userData?.height || '---'}</Text>
-              </View>
-            </View>
-            
-            <View style={[styles.sectionDivider, { backgroundColor: mode === 'light' ? '#eee' : '#333' }]} />
-            
-            <Text style={[styles.sectionTitle, { color: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]}>Personality Traits</Text>
-            <Text style={[styles.sectionSubtitle, { color: mode === 'light' ? '#666' : '#AAA' }]}>
-              These describe my traits
-            </Text>
-            
-            <View style={styles.intelContainer}>
-              <View style={[styles.intelItem, { backgroundColor: sectionBackground }]}>
-                <Text style={[styles.intelLabel, { color: textColor }]}>{userData?.Traits || '---'}</Text>
-              </View>
-            </View>
+            <Text style={[styles.username, { color: textColor }]}>{`@${userData?.username}` || '---'}</Text>
           </View>
 
-          {/* Panel 2: Interests */}
-          <View style={[styles.page, { width: SCREEN_WIDTH - 40, backgroundColor: cardBackground }]}>
-  <Text style={[styles.sectionTitle, { color: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]}>
-    Interests & Hobbies
-  </Text>
-  <View style={styles.interestsContainer}>
-    {(userData?.Interests?.length > 0 ? userData.Interests : []).map((interest, idx) => (
-      <View key={idx} style={[styles.badge, { backgroundColor: cardBackground, borderColor }]}>
-        <Text style={[styles.badgeText, { color: textColor }]}>
-          {typeof interest === 'string' ? interest : JSON.stringify(interest)}
-        </Text>
-      </View>
-    ))}
-  </View>
-            
-            <View style={[styles.sectionDivider, { backgroundColor: mode === 'light' ? '#eee' : '#333' }]} />
-            
-            <Text style={[styles.sectionTitle, { color: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]}>About Me</Text>
-            <Text style={[styles.aboutText, { color: textColor }]}>
-              {userData?.About || '---'}
-            </Text>
+          <Text style={[styles.profileTitle, { color: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]}>{`${userData?.displayName}'s Profile` || '---'}</Text>
+
+          <View style={styles.dotContainer}>
+            <View style={[styles.dot, page === 0 && [styles.activeDot, { backgroundColor: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]]} />
+            <View style={[styles.dot, page === 1 && [styles.activeDot, { backgroundColor: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]]} />
           </View>
+
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            style={[styles.horizScroll, { height: 420 }]}
+          >
+            {/* Panel 1: Personal Info */}
+            <View style={[styles.page, { width: SCREEN_WIDTH - 40, backgroundColor: cardBackground }]}>
+              <View style={styles.infoItem}>
+                <Ionicons name="person" size={20} color={mode === 'light' ? '#ff7e5f' : '#FF9F7F'} style={styles.infoIcon} />
+                <View>
+                  <Text style={[styles.label, { color: mode === 'light' ? '#888' : '#AAA' }]}>Name</Text>
+                  <Text style={[styles.value, { color: textColor }]}>{userData?.Name || '---'}</Text>
+                </View>
+              </View>
+
+              <View style={styles.infoItem}>
+                <Ionicons name="male-female" size={20} color={mode === 'light' ? '#ff7e5f' : '#FF9F7F'} style={styles.infoIcon} />
+                <View>
+                  <Text style={[styles.label, { color: mode === 'light' ? '#888' : '#AAA' }]}>Gender</Text>
+                  <Text style={[styles.value, { color: textColor }]}>{userData?.gender || '---'}</Text>
+                </View>
+              </View>
+
+              <View style={styles.infoItem}>
+                <Ionicons name="calendar" size={20} color={mode === 'light' ? '#ff7e5f' : '#FF9F7F'} style={styles.infoIcon} />
+                <View>
+                  <Text style={[styles.label, { color: mode === 'light' ? '#888' : '#AAA' }]}>Age</Text>
+                  <Text style={[styles.value, { color: textColor }]}>{userData?.Age || '---'}</Text>
+                </View>
+              </View>
+
+              <View style={styles.infoItem}>
+                <Ionicons name="resize" size={20} color={mode === 'light' ? '#ff7e5f' : '#FF9F7F'} style={styles.infoIcon} />
+                <View>
+                  <Text style={[styles.label, { color: mode === 'light' ? '#888' : '#AAA' }]}>Height(cm)</Text>
+                  <Text style={[styles.value, { color: textColor }]}>{userData?.height || '---'}</Text>
+                </View>
+              </View>
+
+              <View style={[styles.sectionDivider, { backgroundColor: mode === 'light' ? '#eee' : '#333' }]} />
+
+              <Text style={[styles.sectionTitle, { color: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]}>Personality Traits</Text>
+              <Text style={[styles.sectionSubtitle, { color: mode === 'light' ? '#666' : '#AAA' }]}>
+                These describe my traits
+              </Text>
+
+              <View style={styles.intelContainer}>
+                <View style={[styles.intelItem, { backgroundColor: sectionBackground }]}>
+                  <Text style={[styles.intelLabel, { color: textColor }]}>{userData?.Traits || '---'}</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Panel 2: Interests */}
+            <View style={[styles.page, { width: SCREEN_WIDTH - 40, backgroundColor: cardBackground }]}>
+              <Text style={[styles.sectionTitle, { color: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]}>
+                Interests & Hobbies
+              </Text>
+              <View style={styles.interestsContainer}>
+                {(userData?.Interests?.length > 0 ? userData.Interests : []).map((interest, idx) => (
+                  <View key={idx} style={[styles.badge, { backgroundColor: cardBackground, borderColor }]}>
+                    <Text style={[styles.badgeText, { color: textColor }]}>
+                      {typeof interest === 'string' ? interest : JSON.stringify(interest)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={[styles.sectionDivider, { backgroundColor: mode === 'light' ? '#eee' : '#333' }]} />
+
+              <Text style={[styles.sectionTitle, { color: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]}>About Me</Text>
+              <Text style={[styles.aboutText, { color: textColor }]}>
+                {userData?.About || '---'}
+              </Text>
+            </View>
+          </ScrollView>
+
+          <TouchableOpacity style={[styles.settingsBtn, { backgroundColor: cardBackground, borderColor }]}
+            onPress={() => router.push('../EditProfile')}>
+            <Ionicons name="create" size={18} color={mode === 'light' ? '#ff7e5f' : '#FF9F7F'} style={styles.btnIcon} />
+            <Text style={[styles.settingsBtnText, { color: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]}>
+              Edit Profile
+            </Text>
+          </TouchableOpacity>
+
+          {/* Fixed Login Button with Theme-Aware Styles */}
+          <TouchableOpacity
+            style={[
+              styles.btn,
+              {
+                backgroundColor: mode === 'light' ? '#ff7e5f' : '#4A4A4A',
+                borderColor: mode === 'light' ? '#ffd6cc' : '#666666'
+              }
+            ]}
+            onPress={handleLogout}
+          >
+            <Text style={[
+              styles.buttonText,
+              { color: '#FFFFFF' } // White text for both light and dark modes
+            ]}>
+              Logout
+            </Text>
+          </TouchableOpacity>
+
         </ScrollView>
 
-        <TouchableOpacity style={[styles.settingsBtn, { backgroundColor: cardBackground, borderColor }]}
-        onPress={() => router.push('../EditProfile')}>
-          <Ionicons name="create" size={18} color={mode === 'light' ? '#ff7e5f' : '#FF9F7F'} style={styles.btnIcon} />
-          <Text style={[styles.settingsBtnText, { color: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]}>
-            Edit Profile 
-          </Text>
-        </TouchableOpacity>
-
-        {/* Fixed Login Button with Theme-Aware Styles */}
-        <TouchableOpacity
-          style={[
-            styles.btn, 
-            { 
-              backgroundColor: mode === 'light' ? '#ff7e5f' : '#4A4A4A',
-              borderColor: mode === 'light' ? '#ffd6cc' : '#666666'
-            }
-          ]}
-          onPress={handleLogout}
-        >
-          <Text style={[
-            styles.buttonText, 
-            { color: '#FFFFFF' } // White text for both light and dark modes
-          ]}>
-            Logout
-          </Text>
-        </TouchableOpacity>
-
-      </ScrollView>
-
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
+
+export default Profile
 
 
 const styles = StyleSheet.create({
 
-  container: { 
+  container: {
     flex: 1,
   },
   mainScrollView: {
@@ -329,8 +333,8 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
-  avatar: { 
-    width: "100%", 
+  avatar: {
+    width: "100%",
     height: "100%",
     borderRadius: 60,
   },
@@ -357,8 +361,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 15,
   },
-  horizScroll: { 
-    flexGrow: 0, 
+  horizScroll: {
+    flexGrow: 0,
     marginBottom: 10,
   },
   page: {
@@ -379,13 +383,13 @@ const styles = StyleSheet.create({
   infoIcon: {
     marginRight: 12,
   },
-  label: { 
-    fontSize: 14, 
+  label: {
+    fontSize: 14,
     fontWeight: "500",
     marginBottom: 2,
   },
-  value: { 
-    fontSize: 16, 
+  value: {
+    fontSize: 16,
     fontWeight: "600",
   },
   sectionDivider: {
@@ -445,8 +449,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginRight: 8,
   },
-  badgeText: { 
-    fontSize: 14, 
+  badgeText: {
+    fontSize: 14,
     fontWeight: "500",
   },
   aboutText: {
@@ -465,7 +469,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ddd",
     marginHorizontal: 4,
   },
-  activeDot: { 
+  activeDot: {
     width: 20,
   },
   settingsBtn: {
@@ -488,8 +492,8 @@ const styles = StyleSheet.create({
   btnIcon: {
     marginRight: 8,
   },
-  settingsBtnText: { 
-    fontWeight: "600", 
+  settingsBtnText: {
+    fontWeight: "600",
     fontSize: 16,
   },
   btn: {
@@ -509,7 +513,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   buttonText: {
-    fontWeight: "600", 
+    fontWeight: "600",
     fontSize: 16,
   }
 });

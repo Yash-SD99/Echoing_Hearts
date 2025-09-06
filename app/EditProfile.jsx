@@ -16,6 +16,8 @@ import { auth, db } from "../utils/firebaseConfig";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import profilePics from "../constants/profilePics";
 import { router } from "expo-router";
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 
 export default function EditProfile() {
   const { theme, mode, toggleTheme } = useTheme();
@@ -91,7 +93,7 @@ export default function EditProfile() {
   const cardBackground = mode === "light" ? "#FFFFFF" : "#1E1E1E";
 
   return (
-    <View style={[styles.container, { backgroundColor }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor }]}>
       <StatusBar
         barStyle={mode === "light" ? "dark-content" : "light-content"}
         backgroundColor={mode === "light" ? "#ff7e5f" : "#1A1A1A"}
@@ -232,7 +234,7 @@ export default function EditProfile() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
