@@ -1,13 +1,17 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+
 import { useTheme } from '../utils/themeContext';
+
 import ThemeToggle from '../components/ThemeToggle';
 
 export default function PhoneLogin() {
   const router = useRouter();
+
   const { mode } = useTheme();
 const isDarkMode = mode === 'dark';
+
 
 
   const [phone, setPhone] = useState('');
@@ -125,4 +129,5 @@ const darkStyles = StyleSheet.create({
   backButton: { backgroundColor: '#FF383C', borderWidth: 1, borderColor: '#D65151' },
   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16, textAlign: 'center' },
   linkText: { color: '#D65151', textAlign: 'center', textDecorationLine: 'underline', marginTop: 10, fontSize: 14 },
+
 });

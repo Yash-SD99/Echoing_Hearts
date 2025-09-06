@@ -1,16 +1,33 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useTheme } from '../utils/themeContext';
+import { ThemeContext } from '../context/ThemeContext';
 import ThemeToggle from '../components/ThemeToggle';
+import { auth } from '../utils/firebaseConfig';
+import { sendPasswordResetEmail } from 'firebase/auth';
 
 export default function ForgotPass() {
   const router = useRouter();
-  const { mode } = useTheme();
-const isDarkMode = mode === 'dark';
-;
+  const { theme } = useContext(ThemeContext);
+  const isDarkMode = theme === 'dark';
   const [email, setEmail] = useState('');
   const styles = isDarkMode ? darkStyles : lightStyles;
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      Alert.alert('Please enter your email');
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      Alert.alert('Success', 'Password reset email sent! Check your inbox.');
+      router.push('/email')
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
+  };
+
 
   return (
     <View style={styles.container}>
@@ -33,12 +50,21 @@ const isDarkMode = mode === 'dark';
       />
 
       <View style={styles.buttonRow}>
-        <TouchableOpacity style={[styles.button, styles.backButton]} onPress={() => router.back()}>
+
+        <TouchableOpacity
+          style={[styles.button, styles.backButton]}
+          onPress={() => router.back()}
+        >
           <Text style={styles.buttonText}>← BACK</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={() => {/* Send OTP logic */}}>
-          <Text style={styles.buttonText}>Send OTP →</Text>
+        <TouchableOpacity
+          style={[styles.button, !email && { opacity: 0.5 }]}
+          onPress={handleForgotPassword}
+          disabled={!email}
+        >
+          <Text style={styles.buttonText}>Send Reset Email →</Text>
+
         </TouchableOpacity>
       </View>
     </View>

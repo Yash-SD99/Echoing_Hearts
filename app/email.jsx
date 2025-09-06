@@ -1,19 +1,43 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useTheme } from '../utils/themeContext';
+
+import { View, Text, TextInput, TouchableOpacity, StyleSheet,Alert} from 'react-native';
+import { Tabs, useRouter } from 'expo-router';
+import { ThemeContext } from '../context/ThemeContext';
 import ThemeToggle from '../components/ThemeToggle';
+import { auth } from '../utils/firebaseConfig';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 export default function EmailLogin() {
   const router = useRouter();
-  const { mode } = useTheme();
-const isDarkMode = mode === 'dark';
+  const { theme } = useContext(ThemeContext);
+  const isDarkMode = theme === 'dark';
 
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const styles = isDarkMode ? darkStyles : lightStyles;
+
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill in both fields");
+      return;
+    }
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      Alert.alert("Success", "Logged in successfully!");
+      router.replace('/(tabs)'); // redirect to home/dashboard
+    } catch (error) {
+      let msg = error.code === "auth/user-not-found"
+        ? "No account found with this email."
+        : error.code === "auth/wrong-password"
+        ? "Incorrect password."
+        : error.message;
+      Alert.alert("Login failed", msg);
+    }
+  }
+
 
   return (
     <View style={styles.container}>
@@ -50,7 +74,9 @@ const isDarkMode = mode === 'dark';
         <TouchableOpacity style={[styles.button, styles.backButton]} onPress={() => router.back()}>
           <Text style={styles.buttonText}>← BACK</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => {/* login logic here */}}>
+
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+
           <Text style={styles.buttonText}>LOGIN →</Text>
         </TouchableOpacity>
       </View>
@@ -147,4 +173,6 @@ const darkStyles = StyleSheet.create({
   forgotContainer: { alignItems: 'flex-end', marginTop: 6, marginRight: 10 },
   forgotText: { fontSize: 15, color: '#F5F5F5' },
   forgotLink: { fontWeight: 'bold', color: '#D65151', textDecorationLine: 'underline' },
+
 });
+

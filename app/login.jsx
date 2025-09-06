@@ -1,19 +1,24 @@
+
 // pages/Login.js
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../utils/themeContext'; // Adjust path as needed
+
 import ThemeToggle from '../components/ThemeToggle';
 
 export default function Login() {
   const router = useRouter();
+
   const { theme, mode } = useTheme();
 
   const isDarkMode = mode === 'dark';
+
   const styles = isDarkMode ? darkStyles : lightStyles;
 
   return (
     <View style={styles.container}>
+
       <ThemeToggle style={styles.themeToggle} />
 
       <Text style={styles.title}>Mystery Makers</Text>
@@ -36,6 +41,7 @@ export default function Login() {
         style={styles.button}
         onPress={() => router.push('/email')}
       >
+
         <Text style={styles.buttonText}>Login with Email</Text>
       </TouchableOpacity>
 
@@ -46,7 +52,9 @@ export default function Login() {
   );
 }
 
+
 // Shared button styles for both themes
+
 const commonButton = {
   padding: 14,
   marginVertical: 10,
@@ -69,6 +77,7 @@ const lightStyles = StyleSheet.create({
     left: 30,
     zIndex: 10,
   },
+
   globe: { width: 250, height: 250, marginBottom: 20 },
   title: {
     fontSize: 48,
@@ -92,7 +101,7 @@ const lightStyles = StyleSheet.create({
     textDecorationLine: 'underline',
     fontSize: 16,
   },
-});
+
 
 const darkStyles = StyleSheet.create({
   container: {
@@ -108,6 +117,7 @@ const darkStyles = StyleSheet.create({
     left: 30,
     zIndex: 10,
   },
+
   globe: { width: 250, height: 250, marginBottom: 20 },
   title: {
     fontSize: 48,
@@ -131,4 +141,9 @@ const darkStyles = StyleSheet.create({
     textDecorationLine: 'underline',
     fontSize: 16,
   },
-});
+
+  toggleIcon: {
+    width: 20,
+    height: 20,
+  },
+  

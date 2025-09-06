@@ -1,9 +1,15 @@
 import React, { useContext } from 'react';
 import { TouchableOpacity, Image, StyleSheet } from 'react-native';
+
 import { useTheme } from '../utils/themeContext';
 
 export default function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
+
+import { ThemeContext } from '../context/ThemeContext';
+
+// export default function ThemeToggle() {
+//   const { theme, toggleTheme } = useContext(ThemeContext);
 
   const isDarkMode = theme === 'dark';
 

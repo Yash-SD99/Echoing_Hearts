@@ -1,27 +1,184 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, Button } from 'react-native';
-import { useTheme } from '../../utils/themeContext';  // adjust path as needed
+import React, { useRef, useState, useEffect } from 'react';
+import { View, TouchableOpacity, Image, StyleSheet, Text,Alert } from 'react-native';
+import * as Location from 'expo-location';
+import OSMMap from '../../utils/OSMMap'; // Adjust path
+import plusIcon from '../../assets/plus.png';  // Adjust path
+import minusIcon from '../../assets/minus.png'; // Adjust path
+import { useTheme } from '../../utils/themeContext'; // Adjust path
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../utils/firebaseConfig';  // Adjust path to your config
+import { useRouter } from 'expo-router';
 
-const Map = () => {
-  const { theme, mode, toggleTheme } = useTheme();
-    return (
-      <View style={[styles.container, { backgroundColor: theme.c1 }]}>
-            <Text style={[styles.text, { color: theme.c2 }]}>Map</Text>
+export default function Map() {
+  const { mode } = useTheme();
+  const webviewRef = useRef(null);
+  const [userLocation, setUserLocation] = useState(null);
+  const [markers, setMarkers] = useState([]);
+  const router=useRouter();
+
+  useEffect(() => {
+    let subscription;
+
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+         Alert.alert("Permission Required", "Location access is needed to use this feature.");
+        return;
+      }
+
+      // Get initial location
+      const location = await Location.getCurrentPositionAsync({});
+      setUserLocation({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+
+      // Watch location updates continuously
+      subscription = await Location.watchPositionAsync(
+        { accuracy: Location.Accuracy.Highest, distanceInterval: 1 },
+        (loc) => {
+          const { latitude, longitude } = loc.coords;
+          setUserLocation({ latitude, longitude });
+
+          // Inject JS to update user live location marker dynamically
+          if (webviewRef.current) {
+            const jsCode = `
+              if (window.updateUserLocation) {
+                window.updateUserLocation(${latitude}, ${longitude});
+              }
+              true;
+            `;
+            webviewRef.current.injectJavaScript(jsCode);
+          }
+        }
+      );
+
+      // ✅ Updated Firestore fetch with subcollection support
+      async function loadMarkers() {
+        try {
+          const snapshot = await getDocs(collection(db, "whispers"));
+          let loadedMarkers = [];
+
+          for (const doc of snapshot.docs) {
+            const data = doc.data();
+            if (!data?.Location) continue;
+
+            // Fetch subcollection "w"
+            const wSnap = await getDocs(collection(db, "whispers", doc.id, "w"));
+
+            wSnap.forEach(wDoc => {
+              const wData = wDoc.data();
+              loadedMarkers.push({
+                latitude: data.Location.latitude,
+                longitude: data.Location.longitude,
+                text: wData?.text ?? "",
+                title: wData?.title ?? "",
+                username: wData?.username ?? "Anonymous",
+                likes: wData?.likes ?? 0,
+                dislikes: wData?.dislikes ?? 0,
+              });
+            });
+          }
+
+          setMarkers(loadedMarkers);
+        } catch (error) {
+          console.error("Error fetching whispers:", error);
+        }
+      }
+      loadMarkers();
+    })();
+
+    return () => {
+      if (subscription) subscription.remove();
+    };
+  }, []);
+
+  // Function to place a marker at the current user location on demand
+  const placeMarkerAtUserLocation = () => {
+  if (!userLocation) return;
+
+  // Navigate to new page with location
+  router.push({
+    pathname: "/addWhisper",
+    params: {
+      latitude: userLocation.latitude,
+      longitude: userLocation.longitude,
+    },
+  });
+};
+
+
+  const zoomIn = () => {
+    webviewRef.current?.injectJavaScript('window.map.zoomIn(); true;');
+  };
+
+  const zoomOut = () => {
+    webviewRef.current?.injectJavaScript('window.map.zoomOut(); true;');
+  };
+
+
+  return (
+    <View style={styles.container}>
+      {/* ✅ Pass updated markers with text, title, username */}
+      <OSMMap
+        ref={webviewRef}
+        mode={mode}
+        userLocation={userLocation}
+        markers={markers}
+        onMarkerPress={({ latitude, longitude }) => {
+          // Navigate to Whispers page with the coordinates
+          router.push({
+            pathname: '/whispers',
+            params: { latitude, longitude },
+          });
+        }}
+      />
+
+      <View style={styles.controls}>
+        <TouchableOpacity onPress={zoomIn}>
+          <Image source={plusIcon} style={styles.icon} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={zoomOut}>
+          <Image source={minusIcon} style={styles.icon} />
+        </TouchableOpacity>
       </View>
-    );
+      <View style={styles.addWhis}>
+        <TouchableOpacity
+          onPress={placeMarkerAtUserLocation}
+          style={styles.markerButton}
+        >
+          <Text style={styles.markerButtonText}>Add Marker on My Location</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 }
 
-export default Map;
 
 const styles = StyleSheet.create({
-    text: {
-        fontSize: 20
-    },
-
-    container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        display: 'flex'
-    }
+  container: { flex: 1 },
+  controls: {
+    position: 'absolute',
+    right: 15,
+    bottom: 150,
+    backgroundColor: 'transparent',
+    gap: 10,
+  },
+  addWhis: {
+    position: 'absolute',
+    backgroundColor: 'transparent',
+    left: 15,
+    bottom: 150
+  },
+  icon: { width: 53, height: 53, marginBottom: 10},
+  markerButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+  },
+  markerButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
 });

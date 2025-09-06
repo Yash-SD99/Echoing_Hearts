@@ -1,11 +1,14 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+
 import { useTheme } from '../utils/themeContext'; 
+
 import ThemeToggle from '../components/ThemeToggle';
 
 export default function PassOtp() {
   const router = useRouter();
+
   const { mode } = useTheme();
 const isDarkMode = mode === 'dark';
 

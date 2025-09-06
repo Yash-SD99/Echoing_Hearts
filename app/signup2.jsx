@@ -1,26 +1,31 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useTheme } from '../utils/themeContext';
+import { ThemeContext } from '../context/ThemeContext';
 import ThemeToggle from '../components/ThemeToggle';
+import { db, auth } from '../utils/firebaseConfig';
+import { setDoc, doc } from 'firebase/firestore';
+import { useLocalSearchParams } from 'expo-router';
 
 export default function SignupStep2() {
   const router = useRouter();
- const { mode } = useTheme();
-const isDarkMode = mode === 'dark';
-
+  const { theme } = useContext(ThemeContext);
+  const isDarkMode = theme === 'dark';
+  const { username,email} = useLocalSearchParams();
+  
 
   const [gender, setGender] = useState('');
   const [city, setCity] = useState('');
   const [stateCountry, setStateCountry] = useState('');
   const [address, setAddress] = useState('');
+
   const [ageConfirmed, setAgeConfirmed] = useState(false);
 
-  const styles = isDarkMode ? darkStyles : lightStyles;
 
-  // Handler to go to next step or show error
-  const handleSignup = () => {
-    if (ageConfirmed) {
+  const styles = isDarkMode ? darkStyles : lightStyles;
+  const handleSignup = async () => {
+     if (ageConfirmed) {
       router.push('/signup3');
     } else {
       // Show an alert message
@@ -30,8 +35,29 @@ const isDarkMode = mode === 'dark';
         [{ text: "OK" }]
       );
     }
-  };
 
+  if (!gender || !city || !stateCountry) {
+    alert("Please fill all required fields");
+    return;
+  }
+
+  try {
+    const userId = auth.currentUser.uid;
+    await setDoc(doc(db, "users", userId), {
+      username, 
+      email,
+      gender,
+      city,
+      stateCountry,
+      address,
+    }, { merge: true });
+
+    alert("Signup successful!");
+    router.replace('/email'); // navigate to home/dashboard
+  } catch (error) {
+    alert("Error: " + error.message);
+  }
+};
   return (
     <View style={styles.container}>
       <ThemeToggle />
@@ -41,10 +67,23 @@ const isDarkMode = mode === 'dark';
       </View>
 
       <Text style={styles.subtitle}>Sign Up</Text>
+
       <Text style={styles.info}>Fields marked with * are required</Text>
 
       <TextInput
         style={styles.input}
+
+
+      <TextInput
+        style={styles.input}
+        placeholder="Gender*"
+        value={gender}
+        onChangeText={setGender}
+        placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
+      />
+      <TextInput
+        style={styles.input}
+
         placeholder="City*"
         value={city}
         onChangeText={setCity}
@@ -65,6 +104,7 @@ const isDarkMode = mode === 'dark';
         multiline
         placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
       />
+
 
       {/* Custom Checkbox */}
       <View style={styles.checkboxRow}>
@@ -88,15 +128,20 @@ const isDarkMode = mode === 'dark';
         </Text>
       </View>
 
+
       <View style={styles.buttonRow}>
         <TouchableOpacity style={[styles.button, styles.backButton]} onPress={() => router.back()}>
           <Text style={styles.buttonText}>← BACK</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.button}
           onPress={() => router.push('/signup3')}
         >
           <Text style={styles.buttonText}>SIGN UP →</Text>
+
+
+        
         </TouchableOpacity>
       </View>
     </View>
@@ -104,6 +149,7 @@ const isDarkMode = mode === 'dark';
 }
 
 const commonButton = {
+
   height: 44,
   borderRadius: 22,
   justifyContent: 'center',
@@ -115,20 +161,25 @@ const commonButton = {
 
 const lightStyles = StyleSheet.create({
   container: { flex: 1, paddingTop: 70, paddingLeft: 10, paddingRight: 10, backgroundColor: '#FFECEC' },
+
   titleBox: {
     alignSelf: 'center',
     backgroundColor: '#FF383C',
     borderRadius: 30,
+
     opacity: 0.5,
+
     paddingVertical: 35,
     paddingHorizontal: 20,
     marginBottom: 30,
     width: '85%',
     elevation: 2
   },
+
   title: { fontSize: 48, fontWeight: 'bold', color: '#FFECEC', textAlign: 'center', lineHeight: 57 },
   subtitle: { fontSize: 36, fontWeight: 'bold', marginBottom: 8, color: '#FF383C', textAlign: 'left', lineHeight: 49, opacity: 0.5 },
   info: { fontSize: 16, marginBottom: 10, color: '#FF6F91', textAlign: 'left', opacity: 0.9 },
+
   input: {
     backgroundColor: 'white',
     height: 50,
@@ -140,6 +191,7 @@ const lightStyles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+
   checkboxRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6, marginBottom: 16 },
   checkbox: {
     width: 28,
@@ -167,27 +219,34 @@ const lightStyles = StyleSheet.create({
   },
   buttonRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
   button: { ...commonButton, backgroundColor: '#FF383C', opacity: 0.5, marginHorizontal: 6, flex: 1 },
+
   backButton: { backgroundColor: '#FF383C', borderWidth: 1, borderColor: '#FF6F91' },
   buttonText: { color: '#FFECEC', fontWeight: 'bold', fontSize: 18, textAlign: 'center' },
   linkText: { color: '#FF6F91', textAlign: 'center', textDecorationLine: 'underline', marginTop: 10, fontSize: 14 },
 });
 
+
 const darkStyles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 70, paddingLeft: 10, paddingRight: 10, backgroundColor: '#3C3C43' },
+  container: { flex: 1, paddingTop: 70,paddingLeft:10,paddingRight:10, backgroundColor: '#3C3C43',lineHeight:57 },
+
   titleBox: {
     alignSelf: 'center',
     backgroundColor: '#FF383C',
     borderRadius: 30,
     paddingVertical: 35,
+
     opacity: 0.5,
+
     paddingHorizontal: 20,
     marginBottom: 30,
     width: '85%',
     elevation: 2
   },
+
   title: { fontSize: 48, fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center', lineHeight: 57 },
   subtitle: { fontSize: 36, fontWeight: 'bold', marginBottom: 8, color: '#F5F5F5', textAlign: 'left' },
   info: { fontSize: 16, marginBottom: 10, color: '#F5F5F5', textAlign: 'left', opacity: 0.5 },
+
   input: {
     backgroundColor: '#444448',
     height: 50,
@@ -199,6 +258,7 @@ const darkStyles = StyleSheet.create({
     fontSize: 16,
     color: '#eee',
   },
+
   checkboxRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6, marginBottom: 16 },
   checkbox: {
     width: 28,

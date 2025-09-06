@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   View,
@@ -11,8 +12,10 @@ import {
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+
 import { useTheme } from '../../utils/themeContext';
 import { useRouter } from "expo-router";
+
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const TAB_BAR_HEIGHT = 75;
@@ -31,10 +34,12 @@ const intelOptions = [
   { label: "Socializer", short: "Sj" },
 ];
 
+
 export default function Profile() {
   const router = useRouter();
   const [page, setPage] = useState(0);
   const { theme, mode, toggleTheme } = useTheme();
+  const router = useRouter();
 
   const handleScroll = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
@@ -48,6 +53,7 @@ export default function Profile() {
   const sectionBackground = mode === 'light' ? '#fff8f7' : '#2A1E1E';
 
   return (
+
     <View style={[styles.container, { backgroundColor }]}>
       <StatusBar barStyle={mode === 'light' ? 'dark-content' : 'light-content'} backgroundColor={mode === 'light' ? '#ff7e5f' : '#1A1A1A'} />
       
@@ -205,11 +211,13 @@ export default function Profile() {
         </TouchableOpacity>
 
       </ScrollView>
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+
   container: { 
     flex: 1,
   },
