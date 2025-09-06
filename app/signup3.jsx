@@ -3,6 +3,9 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-nativ
 import { useRouter } from 'expo-router';
 import { useTheme } from '../utils/themeContext';
 import ThemeToggle from '../components/ThemeToggle';
+import { auth, db } from '../utils/firebaseConfig';
+import { doc, setDoc, updateDoc } from 'firebase/firestore';
+
 
 export default function SignupStep3() {
   const router = useRouter();
@@ -11,11 +14,54 @@ const isDarkMode = mode === 'dark';
 
 
   const [displayName, setDisplayName] = useState('');
-  const [gender, setGender] = useState('');
+  const [pincode, setpincode] = useState('');
   const [age, setAge] = useState('');
   const [height, setHeight] = useState('');
 
   const styles = isDarkMode ? darkStyles : lightStyles;
+  const handleNext = async() => {
+  if (!displayName.trim()) {
+    alert("Name is required");
+    return;
+  }
+
+  const ageNumber = parseInt(age);
+  if (!age || isNaN(ageNumber)) {
+    alert("Age is required and must be a number");
+    return;
+  }
+
+  if (ageNumber < 18) {
+    alert("You must be at least 18 years old");
+    return;
+  }
+
+  try {
+    const user = auth.currentUser;
+    if (!user) {
+      alert("No user logged in");
+      return;
+    }
+  
+
+    // Reference to this user's document
+    const userRef = doc(db, "users", user.uid);
+
+    // Save/Update data in Firestore
+    await setDoc(userRef, {
+      Name: displayName,
+      pincode:pincode || null,
+      Age: ageNumber,
+      height: height || null,
+    }, { merge: true }); // merge:true prevents overwriting existing data
+
+    console.log("User profile saved!");
+    router.push('/signup4');
+  } catch (error) {
+    console.error("Error saving profile:", error);
+    alert("Something went wrong while saving your profile");
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -37,14 +83,14 @@ const isDarkMode = mode === 'dark';
       />
       <TextInput
         style={styles.input}
-        placeholder="Gender (optional)"
-        value={gender}
-        onChangeText={setGender}
+        placeholder="pincode(optional)"
+        value={pincode}
+        onChangeText={setpincode}
         placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
       />
       <TextInput
         style={styles.input}
-        placeholder="Age (optional)"
+        placeholder="Age"
         value={age}
         onChangeText={setAge}
         keyboardType="numeric"
@@ -52,14 +98,14 @@ const isDarkMode = mode === 'dark';
       />
       <TextInput
         style={styles.input}
-        placeholder="Height (optional)"
+        placeholder="Height(cm) (optional)"
         value={height}
         onChangeText={setHeight}
         keyboardType="numeric"
         placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
       />
 
-      <TouchableOpacity style={styles.nextButton} onPress={() => router.push('/signup4')}>
+      <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
         <Text style={styles.nextButtonText}>Next →</Text>
       </TouchableOpacity>
     </View>
