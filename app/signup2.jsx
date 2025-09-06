@@ -1,3 +1,4 @@
+
 import React, { useState, useContext } from 'react';
 
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
@@ -25,15 +26,13 @@ export default function SignupStep2() {
 
   const styles = isDarkMode ? darkStyles : lightStyles;
   const handleSignup = async () => {
-     if (ageConfirmed) {
-      router.push('/signup3');
-    } else {
-      // Show an alert message
+     if (!ageConfirmed) {
       Alert.alert(
         "Not Allowed",
         "You must confirm that you are over 18 years of age to proceed.",
         [{ text: "OK" }]
       );
+      return;
     }
 
   if (!gender || !city || !stateCountry) {
@@ -52,8 +51,8 @@ export default function SignupStep2() {
       address,
     }, { merge: true });
 
-    alert("Signup successful!");
-    router.replace('/email'); // navigate to home/dashboard
+    // alert("Signup successful!");
+    router.replace('/signup3'); // navigate to home/dashboard
   } catch (error) {
     alert("Error: " + error.message);
   }
@@ -68,7 +67,6 @@ export default function SignupStep2() {
 
       <Text style={styles.subtitle}>Sign Up</Text>
 
-      <Text style={styles.info}>Fields marked with * are required</Text>
 
       <TextInput
         style={styles.input}
@@ -124,15 +122,14 @@ export default function SignupStep2() {
         </Text>
       </View>
 
-
-      <View style={styles.buttonRow}>
+      {/* <View style={styles.buttonRow}>
         <TouchableOpacity style={[styles.button, styles.backButton]} onPress={() => router.back()}>
           <Text style={styles.buttonText}>← BACK</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push('/signup3')}
+          onPress={handleSignup}
         >
           <Text style={styles.buttonText}>SIGN UP →</Text>
 
@@ -140,7 +137,7 @@ export default function SignupStep2() {
         
         </TouchableOpacity>
       </View>
-    </View>
+    // </View>
   );
 }
 

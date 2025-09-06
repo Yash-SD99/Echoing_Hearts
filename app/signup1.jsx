@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext,useEffect } from 'react';
 
 
 // export default function SignupStep1() {
@@ -12,7 +12,7 @@ import { ThemeContext } from '../context/ThemeContext';
 import ThemeToggle from '../components/ThemeToggle';
 import {auth} from '../utils/firebaseConfig';
 import { createUserWithEmailAndPassword} from 'firebase/auth';
-
+import { signOut } from 'firebase/auth';
 import { db } from "../utils/firebaseConfig";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 export default function SignupStep1() {
@@ -29,6 +29,17 @@ export default function SignupStep1() {
   const [username, setUsername] = useState('');
 
   const styles = isDarkMode ? darkStyles : lightStyles;
+  useEffect(() => {
+    const doLogout = async () => {
+      try {
+        await signOut(auth);
+        console.log("Signed out before signup");
+      } catch (err) {
+        console.log("Error signing out:", err);
+      }
+    };
+    doLogout();
+  }, []);
 
   const handleNext = async () => {
   if (!username||!email || !password || !confPassword ) {

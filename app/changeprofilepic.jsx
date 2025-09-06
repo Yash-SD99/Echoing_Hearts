@@ -1,17 +1,10 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  Image,
-} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image } from 'react-native';
 import { useTheme } from '../utils/themeContext';
 import { useRouter } from 'expo-router';
-import profilePics from '../constants/profilePics'; // ✅ default export
+import profilePics from '../constants/profilePics';
 import { auth, db } from '../utils/firebaseConfig';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export default function SelectProfile() {
   const { mode } = useTheme();
@@ -22,7 +15,26 @@ export default function SelectProfile() {
   const [selected, setSelected] = useState(null);
   const router = useRouter();
 
-  // ✅ Save profile to Firestore
+  // ✅ Fetch existing displayName from Firestore
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        try {
+          const docSnap = await getDoc(doc(db, 'users', user.uid));
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.displayName) setDisplayName(data.displayName);
+            if (data.profilePic) setSelected(data.profilePic);
+          }
+        } catch (error) {
+          console.error('Error fetching profile:', error);
+        }
+      }
+    };
+    fetchProfile();
+  }, []);
+  
   const handleSave = async () => {
     if (!displayName.trim()) {
       alert('Enter a display name');
@@ -40,11 +52,11 @@ export default function SelectProfile() {
           doc(db, 'users', user.uid),
           {
             displayName,
-            profilePic: selected, // store "male" or "female"
+            profilePic: selected,
           },
           { merge: true }
         );
-        router.push('/email');
+        router.push('/(tabs)/profile');
       } else {
         alert('User not logged in');
       }
@@ -62,11 +74,10 @@ export default function SelectProfile() {
 
       <Text style={styles.subtitle}>Select a profile picture</Text>
       <Text style={styles.helper}>
-        Choose one of the avatars and a display name (not your real name) that
-        really captures your vib
+        Choose one of the avatars 
       </Text>
 
-      {/* ✅ Avatar choices */}
+      {/* Avatar selection */}
       <View style={{ flexDirection: 'row', marginBottom: 20, justifyContent: 'center' }}>
         <TouchableOpacity onPress={() => setSelected('male')} style={{ marginHorizontal: 10 }}>
           <Image
@@ -89,18 +100,19 @@ export default function SelectProfile() {
         </TouchableOpacity>
       </View>
 
-      {/* ✅ Display name input */}
+      {/* Display name input with pre-filled value */}
       <View style={styles.inputWrap}>
+        <Text style={[styles.label]}>Display Name</Text>
         <TextInput
           style={styles.input}
           placeholder="Enter display name"
           placeholderTextColor={styles.placeholderColor.color}
-          value={displayName}
+          value={displayName} // ✅ pre-filled value
           onChangeText={setDisplayName}
         />
       </View>
 
-      {/* ✅ Save button */}
+      {/* Save button */}
       <TouchableOpacity style={styles.button} onPress={handleSave}>
         <Text style={styles.buttonText}>Save & Continue</Text>
         <Text style={styles.arrow}>→</Text>
@@ -108,6 +120,7 @@ export default function SelectProfile() {
     </View>
   );
 }
+
 
 const lightStyles = StyleSheet.create({
   container: {

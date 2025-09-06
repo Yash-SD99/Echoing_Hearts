@@ -103,6 +103,7 @@ const lightStyles = StyleSheet.create({
   },
 });
 
+
 const darkStyles = StyleSheet.create({
   container: {
     flex: 1,
