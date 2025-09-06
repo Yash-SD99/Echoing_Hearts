@@ -72,10 +72,6 @@ export default function SignupStep2() {
 
       <TextInput
         style={styles.input}
-
-
-      <TextInput
-        style={styles.input}
         placeholder="Gender*"
         value={gender}
         onChangeText={setGender}
