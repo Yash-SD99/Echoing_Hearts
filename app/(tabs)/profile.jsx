@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import { useTheme } from '../../utils/themeContext';
 import { useRouter } from "expo-router";
 import { auth,db } from '../../utils/firebaseConfig'; // assuming you have firebase auth
@@ -33,6 +35,7 @@ export default function Profile() {
   const router = useRouter();
   const [page, setPage] = useState(0);
   const { theme, mode, toggleTheme } = useTheme();
+
   const [user, setUser] = useState(null); // user state
   const [userData, setUserData] = useState(null); // Firestore user data
   const imageSource = profilePics[userData?.profilePic] || profilePics.male;
@@ -63,6 +66,7 @@ export default function Profile() {
   });
   return () => unsubscribe();
 }, []);
+
 
   const handleScroll = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
@@ -96,9 +100,13 @@ export default function Profile() {
     );
   }
 
+
   // Otherwise, show full profile
   return (
     <View style={[styles.container, { backgroundColor }]}>
+
+//     <SafeAreaView style={[styles.container, { backgroundColor }]}>
+
       <StatusBar barStyle={mode === 'light' ? 'dark-content' : 'light-content'} backgroundColor={mode === 'light' ? '#ff7e5f' : '#1A1A1A'} />
       
       <LinearGradient 
@@ -260,7 +268,7 @@ export default function Profile() {
 
       </ScrollView>
 
-    </View>
+    </SafeAreaView>
   );
 }
 
