@@ -39,8 +39,7 @@ export default function Profile() {
   const router = useRouter();
   const [page, setPage] = useState(0);
   const { theme, mode, toggleTheme } = useTheme();
-  const router = useRouter();
-
+  
   const handleScroll = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     setPage(Math.round(offsetX / (SCREEN_WIDTH - 40)));

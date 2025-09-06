@@ -68,11 +68,9 @@ export default function SignupStep2() {
 
       <Text style={styles.subtitle}>Sign Up</Text>
 
-      <Text style={styles.info}>Fields marked with * are required</Text>
+      {/* <Text style={styles.info}>Fields marked with * are required</Text> */}
 
-      <TextInput
-        style={styles.input}
-
+      
 
       <TextInput
         style={styles.input}

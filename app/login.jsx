@@ -101,6 +101,7 @@ const lightStyles = StyleSheet.create({
     textDecorationLine: 'underline',
     fontSize: 16,
   },
+});
 
 
 const darkStyles = StyleSheet.create({
@@ -146,4 +147,4 @@ const darkStyles = StyleSheet.create({
     width: 20,
     height: 20,
   },
-  
+});
