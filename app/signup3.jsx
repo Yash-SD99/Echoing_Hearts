@@ -105,7 +105,7 @@ const isDarkMode = mode === 'dark';
         placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
       />
 
-      <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+      <TouchableOpacity style={styles.nextButton} onPress={() => router.push('/signup4')}>
         <Text style={styles.nextButtonText}>Next →</Text>
       </TouchableOpacity>
     </View>

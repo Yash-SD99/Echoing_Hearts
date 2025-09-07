@@ -1,17 +1,14 @@
-
+// app/_layout.js
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { useTheme } from '../../utils/themeContext';
-import { Text, Image, ImageBackground } from 'react-native';
-
+import { Image, ImageBackground } from 'react-native';
 
 const TabIcon = ({ focused, icon }) => {
   return (
     <ImageBackground
       style={{
-
         opacity: focused ? 1 : 0.5, // slightly dim when not focused
-
       }}
     >
       <Image
@@ -50,7 +47,6 @@ const _Layout = () => {
           height: 75,
           position: 'absolute',
           overflow: 'visible',
-
         }
       }}
     >
@@ -68,9 +64,7 @@ const _Layout = () => {
         options={{
           title: "Whispers",
           headerShown: false,
-
           tabBarIcon: ({ focused }) => <TabIcon focused={focused} icon={require('../../assets/whisper.png')} />,
-
         }}
       />
 
