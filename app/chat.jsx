@@ -36,11 +36,11 @@ export default function ChatScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { profileId, profileName } = params;
-  
   const [messages, setMessages] = useState(getMockMessages(profileId));
   const [newMessage, setNewMessage] = useState('');
   const flatListRef = useRef(null);
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const turnCount = countFullTurns(messages);
 
   const sendMessage = () => {
     if (newMessage.trim() === '') return;
@@ -71,6 +71,17 @@ export default function ChatScreen() {
     }, 1000 + Math.random() * 1000);
   };
 
+  const goToProgressPage = () => {
+    router.push({
+      pathname: '/progress',
+      params: {
+        profileId,
+        profileName,
+        messageCount: turnCount
+      }
+    });
+  };
+
   const animateButton = () => {
     Animated.sequence([
       Animated.timing(scaleAnim, {
@@ -85,10 +96,9 @@ export default function ChatScreen() {
         easing: Easing.ease,
         useNativeDriver: true
       })
-    ]).start();
-
-    // Your friend will handle the reveal process here
-    console.log('Progress button pressed - reveal handled by backend');
+    ]).start(() => {
+      goToProgressPage();
+    });
   };
 
   const renderMessage = ({ item }) => {
@@ -127,6 +137,21 @@ export default function ChatScreen() {
       </View>
     );
   };
+
+  function countFullTurns(messages) {
+    let turns = 0;
+    // Iterate through messages and count pairs of alternating senders
+    for (let i = 1; i < messages.length; i++) {
+      const prevSender = messages[i - 1].sender;
+      const currSender = messages[i].sender;
+      if (prevSender !== currSender) {
+        turns++;
+        i++; // skip next message because it's counted with this pair
+      }
+    }
+    return turns;
+  }
+
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
