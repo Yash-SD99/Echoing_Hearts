@@ -129,7 +129,7 @@ export default function SignupStep2() {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push('/signup3')}
+          onPress={handleSignup}
         >
           <Text style={styles.buttonText}>SIGN UP →</Text>
 
