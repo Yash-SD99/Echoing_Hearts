@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import { useTheme } from '../utils/themeContext';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-
 import { onAuthStateChanged } from 'firebase/auth';
 import { 
   collection, 
@@ -39,53 +38,54 @@ export default function ChatScreen() {
   const params = useLocalSearchParams();
   const { profileId, profileName } = params;
 
+  const currentUid = auth.currentUser?.uid; // logged-in user UID
+  const chatId = makeChatId(currentUid, profileId);
+
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const flatListRef = useRef(null);
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  const currentUid = auth.currentUser?.uid;
-  const chatId = makeChatId(currentUid, profileId);
-
   // --- Load messages from Firestore ---
   useEffect(() => {
-    let unsubMessages = null;
+  let unsubMessages = null;
 
-    const unsubAuth = onAuthStateChanged(auth, (user) => {
-      if (!user || !profileId) {
-        setMessages([]);
-        if (unsubMessages) {
-          unsubMessages();
-          unsubMessages = null;
-        }
-        return;
+  const unsubAuth = onAuthStateChanged(auth, (user) => {
+    // If user logs out, stop everything
+    if (!user || !profileId) {
+      setMessages([]);
+      if (unsubMessages) {
+        unsubMessages(); // stop Firestore listener
+        unsubMessages = null;
       }
+      return;
+    }
 
-      const chatId = makeChatId(user.uid, profileId);
-      const messagesRef = collection(db, "chats", chatId, "messages");
-      const q = query(messagesRef, orderBy("createdAt", "asc"));
+    // Build chatId only if logged in
+    const chatId = makeChatId(user.uid, profileId);
+    const messagesRef = collection(db, "chats", chatId, "messages");
+    const q = query(messagesRef, orderBy("createdAt", "asc"));
 
-      unsubMessages = onSnapshot(q, (snap) => {
-        const msgs = snap.docs.map((d) => {
-          const data = d.data();
-          return {
-            id: d.id,
-            text: data.text,
-            sender: data.senderId === user.uid ? "You" : profileName || data.senderId,
-            timestamp: data.createdAt?.toDate?.() || new Date(),
-          };
-        });
-        setMessages(msgs);
-        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    unsubMessages = onSnapshot(q, (snap) => {
+      const msgs = snap.docs.map((d) => {
+        const data = d.data();
+        return {
+          id: d.id,
+          text: data.text,
+          sender: data.senderId === user.uid ? "You" : profileName || data.senderId,
+          timestamp: data.createdAt?.toDate?.() || new Date(),
+        };
       });
+      setMessages(msgs);
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     });
+  });
 
-    return () => {
-      if (unsubMessages) unsubMessages();
-      unsubAuth();
-    };
-  }, [profileId, profileName]);
-
+  return () => {
+    if (unsubMessages) unsubMessages();
+    unsubAuth();
+  };
+}, [profileId, profileName]);
   // --- Send message ---
   const sendMessage = async () => {
     if (newMessage.trim() === '' || !currentUid || !profileId) return;
@@ -98,32 +98,35 @@ export default function ChatScreen() {
       const messagesRef = collection(db, 'chats', chatId, 'messages');
 
       // Ensure chat doc exists
-      await setDoc(chatRef, {
-        participants: [currentUid, profileId].sort(),
-        createdAt: serverTimestamp(),
-      }, { merge: true });
+     // Ensure chat doc exists (initialize only participants + createdAt)
+// ❌ removed lastMessage + lastUpdated + messageCounts to avoid reset
+  await setDoc(chatRef, {
+    participants: [currentUid, profileId].sort(),
+    createdAt: serverTimestamp(),
+  }, { merge: true });
 
-      // Add message to messages subcollection
-      await addDoc(messagesRef, {
-        senderId: currentUid,
-        text,
-        createdAt: serverTimestamp(),
-        participants: [currentUid, profileId].sort(),
-      });
+  // Add message to messages subcollection
+  await addDoc(messagesRef, {
+    senderId: currentUid,
+    text,
+    createdAt: serverTimestamp(),
+    participants: [currentUid, profileId].sort(),
+  });
 
-      // Update last message + increment only sender's message count
-      await updateDoc(chatRef, {
-        lastMessage: text,
-        lastUpdated: serverTimestamp(),
-        [`messageCounts.${currentUid}`]: increment(1),
-      });
+  // Update last message + increment only sender's message count
+  await updateDoc(chatRef, {
+    lastMessage: text,
+    lastUpdated: serverTimestamp(),
+    [`messageCounts.${currentUid}`]: increment(1),
+  });
+
 
     } catch (err) {
       console.error('sendMessage error', err);
     }
   };
 
-  // --- Navigate to progress page ---
+  // --- Go to progress page with messageCounts info ---
   const goToProgressPage = () => {
     router.push({
       pathname: '/progress',
@@ -131,12 +134,12 @@ export default function ChatScreen() {
         profileId,
         profileName,
         chatId,
-        userId: currentUid
+        userId:currentUid
+        // we don’t have turns here; progress page should read messageCounts from Firestore
       }
     });
   };
 
-  // --- Animate button and then navigate ---
   const animateButton = () => {
     Animated.sequence([
       Animated.timing(scaleAnim, {
@@ -196,7 +199,6 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-
       {/* Header */}
       <View style={[styles.header, { backgroundColor: theme.c1 }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -229,8 +231,6 @@ export default function ChatScreen() {
           styles.messagesContent,
           { paddingBottom: Platform.OS === 'android' ? 100 : 80 }
         ]}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
-        onLayout={() => flatListRef.current?.scrollToEnd()}
       />
 
       {/* Message Input */}
@@ -319,5 +319,3 @@ const styles = StyleSheet.create({
   sendButton: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
   sendButtonText: { color: 'white', fontSize: 18, fontWeight: 'bold' },
 });
-
-
