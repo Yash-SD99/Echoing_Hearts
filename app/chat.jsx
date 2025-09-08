@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -15,62 +15,128 @@ import {
 import { useTheme } from '../utils/themeContext';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-// Mock messages
-const getMockMessages = (profileId) => {
-  const commonMessages = {
-    '1': [
-      { id: '1', text: 'Found your whisper near the library! 📚', sender: 'MysteriousTraveler', timestamp: new Date(Date.now() - 3600000) },
-      { id: '2', text: 'Glad you found it! What brought you there?', sender: 'You', timestamp: new Date(Date.now() - 3500000) },
-      { id: '3', text: 'Just looking for a quiet place to read. Your note made me smile :)', sender: 'MysteriousTraveler', timestamp: new Date(Date.now() - 3400000) },
-    ],
-    '2': [
-      { id: '1', text: 'The park whisper was beautiful today 🌸', sender: 'SilentDreamer', timestamp: new Date(Date.now() - 7200000) },
-      { id: '2', text: 'Nature inspires me too!', sender: 'You', timestamp: new Date(Date.now() - 7100000) },
-    ]
-  };
-  return commonMessages[profileId] || [];
-};
+import { onAuthStateChanged } from 'firebase/auth';
+import { 
+  collection, 
+  doc, 
+  query, 
+  orderBy, 
+  onSnapshot, 
+  addDoc, 
+  setDoc, 
+  updateDoc, 
+  serverTimestamp, 
+  increment 
+} from 'firebase/firestore';
+import { auth, db } from '../utils/firebaseConfig';
+
+// --- helper to make stable chatId ---
+const makeChatId = (uid1, uid2) => [uid1, uid2].sort().join('_');
 
 export default function ChatScreen() {
   const { theme } = useTheme();
   const router = useRouter();
   const params = useLocalSearchParams();
   const { profileId, profileName } = params;
-  
-  const [messages, setMessages] = useState(getMockMessages(profileId));
+
+  const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const flatListRef = useRef(null);
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  const sendMessage = () => {
-    if (newMessage.trim() === '') return;
+  const currentUid = auth.currentUser?.uid;
+  const chatId = makeChatId(currentUid, profileId);
 
-    const newMsg = {
-      id: Date.now().toString(),
-      text: newMessage.trim(),
-      sender: 'You',
-      timestamp: new Date(),
+  // --- Load messages from Firestore ---
+  useEffect(() => {
+    let unsubMessages = null;
+
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      if (!user || !profileId) {
+        setMessages([]);
+        if (unsubMessages) {
+          unsubMessages();
+          unsubMessages = null;
+        }
+        return;
+      }
+
+      const chatId = makeChatId(user.uid, profileId);
+      const messagesRef = collection(db, "chats", chatId, "messages");
+      const q = query(messagesRef, orderBy("createdAt", "asc"));
+
+      unsubMessages = onSnapshot(q, (snap) => {
+        const msgs = snap.docs.map((d) => {
+          const data = d.data();
+          return {
+            id: d.id,
+            text: data.text,
+            sender: data.senderId === user.uid ? "You" : profileName || data.senderId,
+            timestamp: data.createdAt?.toDate?.() || new Date(),
+          };
+        });
+        setMessages(msgs);
+        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      });
+    });
+
+    return () => {
+      if (unsubMessages) unsubMessages();
+      unsubAuth();
     };
+  }, [profileId, profileName]);
 
-    setMessages(prev => [...prev, newMsg]);
+  // --- Send message ---
+  const sendMessage = async () => {
+    if (newMessage.trim() === '' || !currentUid || !profileId) return;
+
+    const text = newMessage.trim();
     setNewMessage('');
-    
-    setTimeout(() => {
-      const replies = [
-        'Interesting thought! 🤔',
-        'I feel the same way sometimes.',
-        'What made you think of that?',
-      ];
-      const replyMsg = {
-        id: (Date.now() + 1).toString(),
-        text: replies[Math.floor(Math.random() * replies.length)],
-        sender: profileName,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, replyMsg]);
-    }, 1000 + Math.random() * 1000);
+
+    try {
+      const chatRef = doc(db, 'chats', chatId);
+      const messagesRef = collection(db, 'chats', chatId, 'messages');
+
+      // Ensure chat doc exists
+      await setDoc(chatRef, {
+        participants: [currentUid, profileId].sort(),
+        createdAt: serverTimestamp(),
+      }, { merge: true });
+
+      // Add message to messages subcollection
+      await addDoc(messagesRef, {
+        senderId: currentUid,
+        text,
+        createdAt: serverTimestamp(),
+        participants: [currentUid, profileId].sort(),
+      });
+
+      // Update last message + increment only sender's message count
+      await updateDoc(chatRef, {
+        lastMessage: text,
+        lastUpdated: serverTimestamp(),
+        [`messageCounts.${currentUid}`]: increment(1),
+      });
+
+    } catch (err) {
+      console.error('sendMessage error', err);
+    }
   };
 
+  // --- Navigate to progress page ---
+  const goToProgressPage = () => {
+    router.push({
+      pathname: '/progress',
+      params: {
+        profileId,
+        profileName,
+        chatId,
+        userId: currentUid
+      }
+    });
+  };
+
+  // --- Animate button and then navigate ---
   const animateButton = () => {
     Animated.sequence([
       Animated.timing(scaleAnim, {
@@ -85,12 +151,12 @@ export default function ChatScreen() {
         easing: Easing.ease,
         useNativeDriver: true
       })
-    ]).start();
-
-    // Your friend will handle the reveal process here
-    console.log('Progress button pressed - reveal handled by backend');
+    ]).start(() => {
+      goToProgressPage();
+    });
   };
 
+  // --- Render each message bubble ---
   const renderMessage = ({ item }) => {
     const isCurrentUser = item.sender === 'You';
     
@@ -130,7 +196,8 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* Header with Progress Button */}
+
+      {/* Header */}
       <View style={[styles.header, { backgroundColor: theme.c1 }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Text style={[styles.backText, { color: theme.primary }]}>←</Text>
@@ -212,9 +279,7 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -223,84 +288,24 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
-  backButton: {
-    marginRight: 16,
-    padding: 4,
-  },
-  backText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  headerInfo: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    opacity: 0.8,
-  },
-  progressButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginLeft: 10,
-  },
-  progressButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  messagesList: {
-    flex: 1,
-  },
-  messagesContent: {
-    padding: 16,
-    paddingTop: 10,
-  },
-  messageContainer: {
-    marginBottom: 16,
-    maxWidth: '80%',
-  },
-  currentUserContainer: {
-    alignSelf: 'flex-end',
-    alignItems: 'flex-end',
-  },
-  otherUserContainer: {
-    alignSelf: 'flex-start',
-    alignItems: 'flex-start',
-  },
-  senderName: {
-    fontSize: 12,
-    marginBottom: 4,
-    opacity: 0.7,
-  },
-  messageBubble: {
-    padding: 12,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  messageText: {
-    fontSize: 16,
-  },
-  timestamp: {
-    fontSize: 10,
-    marginTop: 4,
-    opacity: 0.6,
-  },
-  inputContainer: {
-    paddingHorizontal: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
+  backButton: { marginRight: 16, padding: 4 },
+  backText: { fontSize: 24, fontWeight: 'bold' },
+  headerInfo: { flex: 1 },
+  headerTitle: { fontSize: 18, fontWeight: '600', marginBottom: 2 },
+  headerSubtitle: { fontSize: 12, opacity: 0.8 },
+  progressButton: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, marginLeft: 10 },
+  progressButtonText: { color: 'white', fontSize: 14, fontWeight: '600' },
+  messagesList: { flex: 1 },
+  messagesContent: { padding: 16, paddingTop: 10 },
+  messageContainer: { marginBottom: 16, maxWidth: '80%' },
+  currentUserContainer: { alignSelf: 'flex-end', alignItems: 'flex-end' },
+  otherUserContainer: { alignSelf: 'flex-start', alignItems: 'flex-start' },
+  senderName: { fontSize: 12, marginBottom: 4, opacity: 0.7 },
+  messageBubble: { padding: 12, borderRadius: 20, borderWidth: 1 },
+  messageText: { fontSize: 16 },
+  timestamp: { fontSize: 10, marginTop: 4, opacity: 0.6 },
+  inputContainer: { paddingHorizontal: 16, borderTopWidth: 1, borderTopColor: '#e0e0e0' },
+  inputWrapper: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
   textInput: {
     flex: 1,
     borderWidth: 1,
@@ -311,16 +316,8 @@ const styles = StyleSheet.create({
     maxHeight: 100,
     fontSize: 16,
   },
-  sendButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sendButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
+  sendButton: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
+  sendButtonText: { color: 'white', fontSize: 18, fontWeight: 'bold' },
 });
+
+
