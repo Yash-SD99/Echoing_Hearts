@@ -25,11 +25,13 @@ const getUnlockLevel = (count) => {
 const RECT_HEIGHT = 500;
 
 export default function Progress() {
-  const params = useLocalSearchParams();
+  // const params = useLocalSearchParams();
+  const { profileId, chatId, userId } = useLocalSearchParams();
   const router = useRouter();
+
   const [profileData, setProfileData] = useState(null);
-  const turnCount = parseInt(params.turnCount ?? params.messageCount, 10) || 0;
-  const unlockLevel = getUnlockLevel(turnCount);
+  const [unlockLevel, setUnlockLevel] = useState(1);
+  const [effectiveCount, setEffectiveCount] = useState(0);
 
   // Animated values
   const animations = Array(5)
@@ -39,9 +41,9 @@ export default function Progress() {
   // Fetch profile data of the person you are chatting with
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!params.profileId) return;
+      if (!profileId) return;
       try {
-        const docRef = doc(db, 'users', params.profileId);
+        const docRef = doc(db, 'users', profileId);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setProfileData(docSnap.data());
@@ -53,7 +55,42 @@ export default function Progress() {
       }
     };
     fetchProfile();
-  }, [params.profileId]);
+  }, [profileId]);
+
+  // Fetch message counts from chat and determine unlock level
+  useEffect(() => {
+  const fetchMessageCounts = async () => {
+    if (!chatId || !userId) return;
+    try {
+      const chatRef = doc(db, 'chats', chatId);
+      const chatSnap = await getDoc(chatRef);
+
+      if (!chatSnap.exists()) {
+        console.warn('No chat found for this chatId');
+        return;
+      }
+
+      const chatData = chatSnap.data();
+
+      // Ensure keys are strings
+      const counts = chatData.messageCounts || {};
+      const userCount = Number(counts[String(userId)] || 0);
+      const otherUserId = Object.keys(counts).find((id) => id !== String(userId));
+      const otherUserCount = otherUserId ? Number(counts[String(otherUserId)] || 0) : 0;
+
+      // Only progress when both users reach the required count
+      const effectiveCount = Math.min(userCount, otherUserCount);
+      setEffectiveCount(effectiveCount);
+      const level = getUnlockLevel(effectiveCount);
+      setUnlockLevel(level);
+    } catch (err) {
+      console.error('Error fetching chat message counts:', err);
+    }
+  };
+
+  fetchMessageCounts();
+}, [chatId, userId]);
+
 
   // Animate unlocked rectangles
   useEffect(() => {
@@ -69,9 +106,12 @@ export default function Progress() {
     Animated.stagger(200, animationsToRun).start();
   }, [unlockLevel]);
 
-  // Build rectangles dynamically based on fetched data
+  // Build rectangles dynamically
   const rectangles = [
-    { title: 'Anonymous Name', content: profileData?.displayName || 'Anonymous' },
+    {
+    title: 'Anonymous Name',
+    content: profileData?.displayName || 'Anonymous'},
+  
     { title: 'Interests & Hobbies', content: profileData?.Interests?.join(', ') || '---' },
     { title: 'Personality Traits', content: profileData?.Traits || '---' },
     {
@@ -94,11 +134,10 @@ export default function Progress() {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {rectangles.map((rect, index) => {
           const unlocked = index + 1 <= unlockLevel;
-
           const opacity = animations[index];
           const translateY = animations[index].interpolate({
             inputRange: [0, 1],
-            outputRange: [50, 0], // Slide up animation
+            outputRange: [50, 0],
           });
 
           return (
@@ -119,12 +158,9 @@ export default function Progress() {
                 unlocked ? null : styles.lockedRectangle,
               ]}
             >
-              {unlocked ? (
-                <LinearGradient
-                  colors={['#FFECEC', '#FF383C']}
-                  style={StyleSheet.absoluteFill}
-                />
-              ) : null}
+              {unlocked && (
+                <LinearGradient colors={['#FFECEC', '#FF383C']} style={StyleSheet.absoluteFill} />
+              )}
               <Text style={[styles.rectTitle, unlocked ? { color: '#3C3C43' } : styles.lockedText]}>
                 {rect.title}
               </Text>

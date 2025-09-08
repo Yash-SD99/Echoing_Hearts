@@ -117,6 +117,8 @@ export default function ChatScreen() {
       params: {
         profileId,
         profileName,
+        chatId,
+        userId:currentUid
         // we don’t have turns here; progress page should read messageCounts from Firestore
       }
     });
