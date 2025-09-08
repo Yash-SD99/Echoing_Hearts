@@ -18,54 +18,72 @@ import {
   orderBy,
   onSnapshot,
 } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc,getDoc } from "firebase/firestore";
 
 export default function AnonymousProfilesList() {
   const { theme } = useTheme();
   const router = useRouter();
   const [profiles, setProfiles] = useState([]);
 
-  useEffect(() => {
-    const currentUid = auth.currentUser?.uid;
-    if (!currentUid) return;
+ useEffect(() => {
+  let unsubChats = null;
 
+  const unsubAuth = onAuthStateChanged(auth, (user) => {
+    // User logged out → clear and unsubscribe
+    if (!user) {
+      setProfiles([]);
+      if (unsubChats) {
+        unsubChats();
+        unsubChats = null;
+      }
+      return;
+    }
+
+    // User logged in → set up chats listener
     const chatsRef = collection(db, "chats");
     const q = query(
       chatsRef,
-      where("participants", "array-contains", currentUid),
+      where("participants", "array-contains", user.uid),
       orderBy("lastUpdated", "desc")
     );
 
-    const unsub = onSnapshot(q, (snap) => {
-      const data = snap.docs.map((doc) => {
-        const chat = doc.data();
-        const otherUid = chat.participants.find(
-          (uid) => uid !== currentUid
-        );
+    unsubChats = onSnapshot(q, (snap) => {
+      const dataPromises = snap.docs.map((chatDoc) => {
+        const chat = chatDoc.data();
+        const otherUid = chat.participants.find((uid) => uid !== user.uid);
 
-        return {
-          id: doc.id,
-          profileId: otherUid,
-          anonymousName: "Anonymous", // 🔒 you can replace later with reveal logic
-          mood: "Mysterious 🌌", // 🔒 could come from user profile
-          lastMessage: chat.lastMessage || "",
-          lastActive: chat.lastUpdated
-            ? chat.lastUpdated.toDate().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })
-            : "",
-          revealLevel: 1, // 🔒 pull from your own reveal progress
-          connectionDate: chat.createdAt
-            ? "Connected " +
-              chat.createdAt.toDate().toLocaleDateString()
-            : "",
-        };
+        const userRef = doc(db, "users", otherUid);
+        return getDoc(userRef).then((userSnap) => {
+          const userData = userSnap.exists() ? userSnap.data() : null;
+
+          return {
+            id: chatDoc.id,
+            profileId: otherUid,
+            anonymousName: userData?.displayName || "Anonymous",
+            mood: userData?.mood || "Mysterious",
+            lastMessage: chat.lastMessage || "",
+            lastActive: chat.lastUpdated
+              ? chat.lastUpdated.toDate().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+              : "",
+            revealLevel: chat.level || 1,
+            connectionDate: chat.createdAt
+              ? "Connected " + chat.createdAt.toDate().toLocaleDateString()
+              : "",
+          };
+        });
       });
-      setProfiles(data);
-    });
 
-    return () => unsub();
-  }, []);
+      Promise.all(dataPromises).then((profilesData) => setProfiles(profilesData));
+    });
+  });
+
+  // cleanup
+  return () => {
+    if (unsubChats) unsubChats();
+    unsubAuth();
+  };
+}, []);
 
   const renderProfileItem = ({ item }) => (
     <TouchableOpacity
@@ -116,19 +134,20 @@ export default function AnonymousProfilesList() {
           Anonymity Level:
         </Text>
         <View style={styles.revealDots}>
-          {[1, 2, 3, 4].map((level) => (
-            <View
-              key={level}
-              style={[
-                styles.dot,
-                {
-                  backgroundColor:
-                    level <= item.revealLevel ? theme.primary : theme.c5,
-                  borderColor: theme.c6,
-                },
-              ]}
-            />
-          ))}
+          {[1, 2, 3, 4, 5].map((level) => (
+  <View
+    key={level}
+    style={[
+      styles.dot,
+      {
+        backgroundColor:
+          level <= Number(item.revealLevel) ? "#4CAF50" : "#D3D3D3", // green for unlocked, light gray for locked
+        borderColor: "#888888", // border color
+        marginRight: 4,
+      },
+    ]}
+  />
+))}
         </View>
       </View>
 
@@ -152,20 +171,31 @@ export default function AnonymousProfilesList() {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.background }]}
-    >
-      {/* Header */}
-      <View style={[styles.header, { backgroundColor: theme.c1 }]}>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>
-          Anonymous Connections
+  <SafeAreaView
+    style={[styles.container, { backgroundColor: theme.background }]}
+  >
+    {/* Header */}
+    <View style={[styles.header, { backgroundColor: theme.c1 }]}>
+      <Text style={[styles.headerTitle, { color: theme.text }]}>
+        Anonymous Connections
+      </Text>
+      <Text style={[styles.headerSubtitle, { color: theme.c3 }]}>
+        {auth.currentUser ? `${profiles.length} mysterious conversations` : ""}
+      </Text>
+    </View>
+
+    {/* If not logged in → show message */}
+    {!auth.currentUser ? (
+      <View style={styles.emptyState}>
+        <Text style={[styles.emptyText, { color: theme.c3 }]}>
+          Login to chat
         </Text>
-        <Text style={[styles.headerSubtitle, { color: theme.c3 }]}>
-          {profiles.length} mysterious conversations
+        <Text style={[styles.emptySubtext, { color: theme.c4 }]}>
+          Sign in to discover anonymous connections.
         </Text>
       </View>
-
-      {/* Profiles List */}
+    ) : (
+      // Profiles List
       <FlatList
         data={profiles}
         renderItem={renderProfileItem}
@@ -186,8 +216,10 @@ export default function AnonymousProfilesList() {
           </View>
         }
       />
-    </SafeAreaView>
-  );
+    )}
+  </SafeAreaView>
+);
+
 }
 
 

@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../utils/themeContext';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-
+import { onAuthStateChanged } from 'firebase/auth';
 import { 
   collection, 
   doc, 
@@ -48,28 +48,44 @@ export default function ChatScreen() {
 
   // --- Load messages from Firestore ---
   useEffect(() => {
-    if (!currentUid || !profileId) return;
+  let unsubMessages = null;
 
-    const messagesRef = collection(db, 'chats', chatId, 'messages');
-    const q = query(messagesRef, orderBy('createdAt', 'asc'));
+  const unsubAuth = onAuthStateChanged(auth, (user) => {
+    // If user logs out, stop everything
+    if (!user || !profileId) {
+      setMessages([]);
+      if (unsubMessages) {
+        unsubMessages(); // stop Firestore listener
+        unsubMessages = null;
+      }
+      return;
+    }
 
-    const unsub = onSnapshot(q, snap => {
-      const msgs = snap.docs.map(d => {
+    // Build chatId only if logged in
+    const chatId = makeChatId(user.uid, profileId);
+    const messagesRef = collection(db, "chats", chatId, "messages");
+    const q = query(messagesRef, orderBy("createdAt", "asc"));
+
+    unsubMessages = onSnapshot(q, (snap) => {
+      const msgs = snap.docs.map((d) => {
         const data = d.data();
         return {
           id: d.id,
           text: data.text,
-          sender: data.senderId === currentUid ? 'You' : profileName || data.senderId,
-          timestamp: data.createdAt?.toDate?.() || new Date()
+          sender: data.senderId === user.uid ? "You" : profileName || data.senderId,
+          timestamp: data.createdAt?.toDate?.() || new Date(),
         };
       });
       setMessages(msgs);
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     });
+  });
 
-    return () => unsub();
-  }, [currentUid, profileId]);
-
+  return () => {
+    if (unsubMessages) unsubMessages();
+    unsubAuth();
+  };
+}, [profileId, profileName]);
   // --- Send message ---
   const sendMessage = async () => {
     if (newMessage.trim() === '' || !currentUid || !profileId) return;

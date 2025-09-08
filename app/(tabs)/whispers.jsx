@@ -1,11 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, FlatList, TouchableOpacity, Image } from 'react-native';
 import { useTheme } from '../../utils/themeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { collection, getDocs, doc, updateDoc, increment } from 'firebase/firestore'; // ← added updateDoc & increment
-import { db } from '../../utils/firebaseConfig';
+import { collection, getDocs, doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { db, auth } from '../../utils/firebaseConfig';
+import { useFocusEffect } from 'expo-router';
 
 const Whispers = () => {
   const { theme } = useTheme();
@@ -15,54 +15,73 @@ const Whispers = () => {
 
   const [whispers, setWhispers] = useState([]);
 
-  // Fetch whispers for this location from Firestore
-  useEffect(() => {
+  // ----------------------------
+  // Function to fetch whispers
+  // ----------------------------
+  const fetchWhispers = async () => {
     if (!latitude || !longitude) return;
 
-    async function fetchWhispers() {
-      try {
-        const snapshot = await getDocs(collection(db, 'whispers'));
-        let loaded = [];
+    try {
+      const snapshot = await getDocs(collection(db, 'whispers'));
+      let loaded = [];
 
-        for (const docItem of snapshot.docs) {
-          const data = docItem.data();
-          if (!data?.Location) continue;
+      for (const docItem of snapshot.docs) {
+        const data = docItem.data();
+        if (!data?.Location) continue;
 
-          if (parseFloat(data.Location.latitude) === parseFloat(latitude) &&
-              parseFloat(data.Location.longitude) === parseFloat(longitude)) {
-            
-            const wSnap = await getDocs(collection(db, 'whispers', docItem.id, 'w'));
-            wSnap.forEach(wDoc => {
-              const wData = wDoc.data();
-              loaded.push({
-                id: wDoc.id,
-                parentId: docItem.id, // ← needed to update subcollection
-                title: wData.title || 'Untitled',
-                lastMessage: wData.text || '',
-                username: wData.username || 'Anonymous',
-                likes: wData.likes || 0,
-                dislikes: wData.dislikes || 0,
-                uid:wData.uid,
-                time: wData.createdAt?.toDate?.()?.toLocaleTimeString() || ''
-              });
+        if (parseFloat(data.Location.latitude) === parseFloat(latitude) &&
+            parseFloat(data.Location.longitude) === parseFloat(longitude)) {
+          
+          const wSnap = await getDocs(collection(db, 'whispers', docItem.id, 'w'));
+          wSnap.forEach(wDoc => {
+            const wData = wDoc.data();
+            loaded.push({
+              id: wDoc.id,
+              parentId: docItem.id,
+              title: wData.title || 'Untitled',
+              lastMessage: wData.text || '',
+              username: wData.username || 'Anonymous',
+              likes: wData.likes || [],
+              dislikes: wData.dislikes || [],
+              uid: wData.uid,
+              time: wData.createdAt?.toDate?.()?.toLocaleTimeString() || ''
             });
-          }
+          });
         }
-
-        setWhispers(loaded);
-      } catch (err) {
-        console.error('Error fetching whispers:', err);
       }
-    }
 
+      setWhispers(loaded);
+    } catch (err) {
+      console.error('Error fetching whispers:', err);
+    }
+  };
+
+  // ----------------------------
+  // Initial fetch
+  // ----------------------------
+  useEffect(() => {
     fetchWhispers();
   }, [latitude, longitude]);
 
+  // ----------------------------
+  // Refresh when screen is focused
+  // ----------------------------
+  useFocusEffect(
+  React.useCallback(() => {
+    fetchWhispers(); // always fetch on focus
+  }, []) // empty dependency ensures it always runs
+);
+
+
+  // ----------------------------
+  // Open WhisperDetail screen
+  // ----------------------------
   const openChat = (item) => {
     router.push({
       pathname: '../WhisperDetail',
       params: {
         id: item.id,
+        parentId: item.parentId,
         title: item.title,
         message: item.lastMessage,
         likes: item.likes,
@@ -73,56 +92,53 @@ const Whispers = () => {
     });
   };
 
-  // ← New function: handle like/dislike
-  // ----------------------
-// Updated handleReaction
-// ----------------------
-const handleReaction = async (item, type) => {
-  const userId = auth.currentUser.uid; // ← NEW: get current user's UID
-  const wDocRef = doc(db, 'whispers', item.parentId, 'w', item.id); // ← no change
+  // ----------------------------
+  // Handle like/dislike
+  // ----------------------------
+  const handleReaction = async (item, type) => {
+    const userId = auth.currentUser?.uid;
+    if (!userId) return;
 
-  if (type === 'like') {
-    // ← NEW: only add like if user hasn't liked yet
-    if (!item.likes.includes(userId)) {
-      await updateDoc(wDocRef, {
-        likes: arrayUnion(userId),      // ← NEW: add user to likes array
-        dislikes: arrayRemove(userId)   // ← NEW: remove from dislikes if switching
-      });
+    const wDocRef = doc(db, 'whispers', item.parentId, 'w', item.id);
 
-      // ← NEW: update local state with arrays
-      setWhispers(prev => prev.map(w => 
-        w.id === item.id 
-          ? { 
-              ...w, 
-              likes: [...w.likes, userId], 
-              dislikes: w.dislikes.filter(id => id !== userId) 
-            } 
-          : w
-      ));
+    if (type === 'like') {
+      if (!item.likes.includes(userId)) {
+        await updateDoc(wDocRef, {
+          likes: arrayUnion(userId),
+          dislikes: arrayRemove(userId)
+        });
+        setWhispers(prev => prev.map(w =>
+          w.id === item.id
+            ? { 
+                ...w,
+                likes: [...w.likes, userId],
+                dislikes: w.dislikes.filter(id => id !== userId)
+              }
+            : w
+        ));
+      }
+    } else if (type === 'dislike') {
+      if (!item.dislikes.includes(userId)) {
+        await updateDoc(wDocRef, {
+          dislikes: arrayUnion(userId),
+          likes: arrayRemove(userId)
+        });
+        setWhispers(prev => prev.map(w =>
+          w.id === item.id
+            ? {
+                ...w,
+                dislikes: [...w.dislikes, userId],
+                likes: w.likes.filter(id => id !== userId)
+              }
+            : w
+        ));
+      }
     }
-  } else if (type === 'dislike') {
-    // ← NEW: only add dislike if user hasn't disliked yet
-    if (!item.dislikes.includes(userId)) {
-      await updateDoc(wDocRef, {
-        dislikes: arrayUnion(userId),  // ← NEW: add user to dislikes array
-        likes: arrayRemove(userId)     // ← NEW: remove from likes if switching
-      });
+  };
 
-      // ← NEW: update local state with arrays
-      setWhispers(prev => prev.map(w => 
-        w.id === item.id 
-          ? { 
-              ...w, 
-              dislikes: [...w.dislikes, userId], 
-              likes: w.likes.filter(id => id !== userId) 
-            } 
-          : w
-      ));
-    }
-  }
-};
-
-
+  // ----------------------------
+  // Render each whisper
+  // ----------------------------
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.whisperButton} onPress={() => openChat(item)}>
       <Image source={require('../../assets/images/globe.png')} style={styles.image} />
@@ -132,12 +148,12 @@ const handleReaction = async (item, type) => {
         <View style={{ flexDirection: 'row', marginTop: 4 }}>
           <TouchableOpacity onPress={() => handleReaction(item, 'like')} style={styles.reactionRow}>
             <Image source={require('../../assets/likes.png')} style={styles.reaction} />
-            <Text style={styles.reactionText}>{item.likes}</Text>
+            <Text style={styles.reactionText}>{item.likes.length}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => handleReaction(item, 'dislike')} style={[styles.reactionRow, { marginLeft: 16 }]}>
             <Image source={require('../../assets/dislikes.png')} style={styles.reaction} />
-            <Text style={styles.reactionText}>{item.dislikes}</Text>
+            <Text style={styles.reactionText}>{item.dislikes.length}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -172,7 +188,6 @@ const handleReaction = async (item, type) => {
     </View>
   );
 };
-
 
 export default Whispers;
 
