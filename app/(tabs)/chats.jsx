@@ -1,72 +1,92 @@
-import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  TouchableOpacity, 
-  StyleSheet, 
-  Image,
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
   SafeAreaView,
-  Platform
-} from 'react-native';
-import { useTheme } from '../../utils/themeContext';
-import { useRouter } from 'expo-router';
-
-// Mock anonymous profiles data
-const mockProfiles = [
-  {
-    id: '1',
-    anonymousName: 'MysteriousTraveler',
-    mood: 'Adventurous 🗺️',
-    lastMessage: 'Loved your whisper at the park!',
-    lastActive: '2 min ago',
-    revealLevel: 1,
-    connectionDate: 'Connected today'
-  },
-  {
-    id: '2',
-    anonymousName: 'SilentDreamer',
-    mood: 'Creative 🎨',
-    lastMessage: 'The library whisper was poetic...',
-    lastActive: '10 min ago',
-    revealLevel: 2,
-    connectionDate: 'Connected 1 day ago'
-  },
-  {
-    id: '3',
-    anonymousName: 'CuriousObserver',
-    mood: 'Thoughtful 🤔',
-    lastMessage: 'Want to exchange another clue?',
-    lastActive: '1 hour ago',
-    revealLevel: 1,
-    connectionDate: 'Connected 2 days ago'
-  },
-  {
-    id: '4',
-    anonymousName: 'HiddenExplorer',
-    mood: 'Mysterious 🔮',
-    lastMessage: 'Your notes always make me curious',
-    lastActive: '3 hours ago',
-    revealLevel: 3,
-    connectionDate: 'Connected 3 days ago'
-  }
-];
+  Platform,
+} from "react-native";
+import { useTheme } from "../../utils/themeContext";
+import { useRouter } from "expo-router";
+import { auth, db } from "../../utils/firebaseConfig";
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+} from "firebase/firestore";
 
 export default function AnonymousProfilesList() {
   const { theme } = useTheme();
   const router = useRouter();
-  const [profiles, setProfiles] = useState(mockProfiles);
+  const [profiles, setProfiles] = useState([]);
+
+  useEffect(() => {
+    const currentUid = auth.currentUser?.uid;
+    if (!currentUid) return;
+
+    const chatsRef = collection(db, "chats");
+    const q = query(
+      chatsRef,
+      where("participants", "array-contains", currentUid),
+      orderBy("lastUpdated", "desc")
+    );
+
+    const unsub = onSnapshot(q, (snap) => {
+      const data = snap.docs.map((doc) => {
+        const chat = doc.data();
+        const otherUid = chat.participants.find(
+          (uid) => uid !== currentUid
+        );
+
+        return {
+          id: doc.id,
+          profileId: otherUid,
+          anonymousName: "Anonymous", // 🔒 you can replace later with reveal logic
+          mood: "Mysterious 🌌", // 🔒 could come from user profile
+          lastMessage: chat.lastMessage || "",
+          lastActive: chat.lastUpdated
+            ? chat.lastUpdated.toDate().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "",
+          revealLevel: 1, // 🔒 pull from your own reveal progress
+          connectionDate: chat.createdAt
+            ? "Connected " +
+              chat.createdAt.toDate().toLocaleDateString()
+            : "",
+        };
+      });
+      setProfiles(data);
+    });
+
+    return () => unsub();
+  }, []);
 
   const renderProfileItem = ({ item }) => (
-    <TouchableOpacity 
-      style={[styles.profileCard, { backgroundColor: theme.c1, borderColor: theme.c6 }]}
-      onPress={() => router.push({
-        pathname: '/chat',
-        params: { profileId: item.id, profileName: item.anonymousName }
-      })}
+    <TouchableOpacity
+      style={[
+        styles.profileCard,
+        { backgroundColor: theme.c1, borderColor: theme.c6 },
+      ]}
+      onPress={() =>
+        router.push({
+          pathname: "/chat",
+          params: { profileId: item.profileId, profileName: item.anonymousName },
+        })
+      }
     >
       <View style={styles.profileHeader}>
-        <View style={[styles.avatar, { backgroundColor: getAvatarColor(item.anonymousName) }]}>
+        <View
+          style={[
+            styles.avatar,
+            { backgroundColor: getAvatarColor(item.anonymousName) },
+          ]}
+        >
           <Text style={styles.avatarText}>
             {item.anonymousName.charAt(0)}
           </Text>
@@ -84,24 +104,28 @@ export default function AnonymousProfilesList() {
         </Text>
       </View>
 
-      <Text style={[styles.lastMessage, { color: theme.c4 }]} numberOfLines={1}>
+      <Text
+        style={[styles.lastMessage, { color: theme.c4 }]}
+        numberOfLines={1}
+      >
         {item.lastMessage}
       </Text>
 
       <View style={styles.revealProgress}>
         <Text style={[styles.revealText, { color: theme.c3 }]}>
-          Anonymity Level: 
+          Anonymity Level:
         </Text>
         <View style={styles.revealDots}>
-          {[1, 2, 3, 4].map(level => (
-            <View 
+          {[1, 2, 3, 4].map((level) => (
+            <View
               key={level}
               style={[
-                styles.dot, 
-                { 
-                  backgroundColor: level <= item.revealLevel ? theme.primary : theme.c5,
-                  borderColor: theme.c6
-                }
+                styles.dot,
+                {
+                  backgroundColor:
+                    level <= item.revealLevel ? theme.primary : theme.c5,
+                  borderColor: theme.c6,
+                },
               ]}
             />
           ))}
@@ -115,13 +139,22 @@ export default function AnonymousProfilesList() {
   );
 
   const getAvatarColor = (name) => {
-    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#F9A826', '#6C5CE7', '#FD79A8'];
+    const colors = [
+      "#FF6B6B",
+      "#4ECDC4",
+      "#45B7D1",
+      "#F9A826",
+      "#6C5CE7",
+      "#FD79A8",
+    ];
     const index = name.length % colors.length;
     return colors[index];
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.background }]}
+    >
       {/* Header */}
       <View style={[styles.header, { backgroundColor: theme.c1 }]}>
         <Text style={[styles.headerTitle, { color: theme.text }]}>
@@ -132,14 +165,14 @@ export default function AnonymousProfilesList() {
         </Text>
       </View>
 
-      {/* Profiles List - Added padding at bottom for tab bar */}
+      {/* Profiles List */}
       <FlatList
         data={profiles}
         renderItem={renderProfileItem}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={[
           styles.listContent,
-          { paddingBottom: Platform.OS === 'ios' ? 100 : 120 } // Extra padding for tab bar
+          { paddingBottom: Platform.OS === "ios" ? 100 : 120 },
         ]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
@@ -156,6 +189,7 @@ export default function AnonymousProfilesList() {
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

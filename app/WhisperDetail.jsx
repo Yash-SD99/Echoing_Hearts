@@ -3,12 +3,26 @@ import { ScrollView, View, Text, StyleSheet, Image, TouchableOpacity } from 'rea
 import { useLocalSearchParams } from 'expo-router';
 import { useTheme } from '../utils/themeContext';  // adjust path as needed
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 
 const WhisperDetail = () => {
   const { theme } = useTheme();
   const params = useLocalSearchParams();
   const likeIcon = require('../assets/likes.png');
   const dislikeIcon = require('../assets/dislikes.png');
+  const startChat = () => {
+    if (!params.uid) {
+      console.warn("No author UID found for this whisper");
+      return;
+    }
+    router.push({
+      pathname: '/chat',
+      params: {
+        profileId: params.uid,          // 👈 author’s UID
+        profileName: params.username || 'Anonymous',
+      },
+    });
+  };
 
   return (
     <SafeAreaView style={[styles.outerContainer, { backgroundColor: theme.c1 }]}>
@@ -19,7 +33,7 @@ const WhisperDetail = () => {
       </ScrollView>
 
       <View style={[styles.footer, {backgroundColor : theme.c2}]}>
-        <TouchableOpacity style={[styles.button, styles.chatButton]}>
+        <TouchableOpacity style={[styles.button, styles.chatButton]} onPress={startChat}>
           <Text style={styles.chatButtonText}>Chat</Text>
         </TouchableOpacity>
 
