@@ -101,7 +101,7 @@ export default function SelectProfile() {
       </View>
 
       {/* ✅ Save button */}
-      <TouchableOpacity style={styles.button} onPress={handleSave}>
+      <TouchableOpacity style={styles.button} onPress={() => router.push('/signup5')}>
         <Text style={styles.buttonText}>Save & Continue</Text>
         <Text style={styles.arrow}>→</Text>
       </TouchableOpacity>
