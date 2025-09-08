@@ -42,6 +42,7 @@ const Whispers = () => {
                 username: wData.username || 'Anonymous',
                 likes: wData.likes || 0,
                 dislikes: wData.dislikes || 0,
+                uid:wData.uid,
                 time: wData.createdAt?.toDate?.()?.toLocaleTimeString() || ''
               });
             });
@@ -66,7 +67,8 @@ const Whispers = () => {
         message: item.lastMessage,
         likes: item.likes,
         dislikes: item.dislikes,
-        username: item.username
+        username: item.username,
+        uid: item.uid
       },
     });
   };
