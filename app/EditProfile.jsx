@@ -165,6 +165,56 @@ export default function EditProfile() {
             placeholder="Enter height"
             placeholderTextColor={mode === "light" ? "#888" : "#AAA"}
           />
+          {/* Song */}
+            <Text style={[styles.label, { color: textColor }]}>Favorite Song</Text>
+            <TextInput
+              style={[styles.input, { color: textColor, borderColor: "#ccc" }]}
+              value={userData.song || ""}
+              onChangeText={(text) => handleChange("song", text)}
+              placeholder="Enter favorite song"
+              placeholderTextColor={mode === "light" ? "#888" : "#AAA"}
+            />
+
+            {/* Mood */}
+            <Text style={[styles.label, { color: textColor }]}>Mood</Text>
+            <TextInput
+              style={[styles.input, { color: textColor, borderColor: "#ccc" }]}
+              value={userData.mood || ""}
+              onChangeText={(text) => handleChange("mood", text)}
+              placeholder="Enter your mood"
+              placeholderTextColor={mode === "light" ? "#888" : "#AAA"}
+            />
+
+            {/* City */}
+            <Text style={[styles.label, { color: textColor }]}>City</Text>
+            <TextInput
+              style={[styles.input, { color: textColor, borderColor: "#ccc" }]}
+              value={userData.city || ""}
+              onChangeText={(text) => handleChange("city", text)}
+              placeholder="Enter your city"
+              placeholderTextColor={mode === "light" ? "#888" : "#AAA"}
+            />
+
+            {/* Address */}
+            <Text style={[styles.label, { color: textColor }]}>Address</Text>
+            <TextInput
+              style={[styles.input, { color: textColor, borderColor: "#ccc" }]}
+              value={userData.address || ""}
+              onChangeText={(text) => handleChange("address", text)}
+              placeholder="Enter your address"
+              placeholderTextColor={mode === "light" ? "#888" : "#AAA"}
+            />
+
+            {/* Fact */}
+            <Text style={[styles.label, { color: textColor }]}>Fact</Text>
+            <TextInput
+              style={[styles.input, { color: textColor, borderColor: "#ccc", height: 60, textAlignVertical: "top" }]}
+              value={userData.fact || ""}
+              onChangeText={(text) => handleChange("fact", text)}
+              placeholder="Enter a fact about yourself"
+              placeholderTextColor={mode === "light" ? "#888" : "#AAA"}
+              multiline
+            />
 
           {/* Traits */}
           <Text style={[styles.label, { color: textColor }]}>Traits</Text>

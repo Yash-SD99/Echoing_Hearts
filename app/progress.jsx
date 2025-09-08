@@ -11,7 +11,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc,updateDoc } from 'firebase/firestore';
 import { db } from '../utils/firebaseConfig';
 
 const getUnlockLevel = (count) => {
@@ -83,6 +83,8 @@ export default function Progress() {
       setEffectiveCount(effectiveCount);
       const level = getUnlockLevel(effectiveCount);
       setUnlockLevel(level);
+      // ✅ Store the unlock level in Firestore
+      await updateDoc(chatRef, { level });
     } catch (err) {
       console.error('Error fetching chat message counts:', err);
     }
@@ -120,7 +122,7 @@ export default function Progress() {
     },
     {
       title: 'Full Profile Extras',
-      content: `Favorite Song: ${profileData?.FavoriteSong || '---'}\nCity/Region: ${profileData?.City || '---'}\nMystery Fact: ${profileData?.MysteryFact || '---'}`,
+      content: `Favorite Song: ${profileData?.song || '---'}\nCity: ${profileData?.city || '---'}\nMystery Fact: ${profileData?.fact || '---'}`,
     },
   ];
 

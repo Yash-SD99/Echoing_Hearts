@@ -22,14 +22,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const TAB_BAR_HEIGHT = 75;
 const TAB_BAR_MARGIN_BOTTOM = 25;
 
-const demoInterests = [
-  { label: "Sports" },
-  { label: "Movies" },
-  { label: "Food", },
-  { label: "Video Games" },
-  { label: "Go-Karting" },
-  { label: "Travelling" },
-];
+
 
 const Profile = () => {
   const router = useRouter();
@@ -43,7 +36,8 @@ const Profile = () => {
   const handleLogout = async () => {
     try {
       await auth.signOut();
-      setUser(null); // optional, onAuthStateChanged will update automatically
+      setUser(null);
+      router.push('../login') // optional, onAuthStateChanged will update automatically
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -166,7 +160,7 @@ const Profile = () => {
             showsHorizontalScrollIndicator={false}
             onScroll={handleScroll}
             scrollEventThrottle={16}
-            style={[styles.horizScroll, { height: 420 }]}
+            style={styles.horizScroll} // removed fixed height
           >
             {/* Panel 1: Personal Info */}
             <View style={[styles.page, { width: SCREEN_WIDTH - 40, backgroundColor: cardBackground }]}>
@@ -217,27 +211,53 @@ const Profile = () => {
             </View>
 
             {/* Panel 2: Interests */}
-            <View style={[styles.page, { width: SCREEN_WIDTH - 40, backgroundColor: cardBackground }]}>
-              <Text style={[styles.sectionTitle, { color: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]}>
-                Interests & Hobbies
-              </Text>
-              <View style={styles.interestsContainer}>
-                {(userData?.Interests?.length > 0 ? userData.Interests : []).map((interest, idx) => (
-                  <View key={idx} style={[styles.badge, { backgroundColor: cardBackground, borderColor }]}>
-                    <Text style={[styles.badgeText, { color: textColor }]}>
-                      {typeof interest === 'string' ? interest : JSON.stringify(interest)}
-                    </Text>
-                  </View>
-                ))}
-              </View>
+            {/* Panel 2: Interests */}
+<View style={[styles.page, { width: SCREEN_WIDTH - 40, backgroundColor: cardBackground }]}>
+  <Text style={[styles.sectionTitle, { color: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]}>
+    Interests & Hobbies
+  </Text>
+  <View style={styles.interestsContainer}>
+    {(userData?.Interests?.length > 0 ? userData.Interests : []).map((interest, idx) => (
+      <View key={idx} style={[styles.badge, { backgroundColor: cardBackground, borderColor }]}>
+        <Text style={[styles.badgeText, { color: textColor }]}>
+          {typeof interest === 'string' ? interest : JSON.stringify(interest)}
+        </Text>
+      </View>
+    ))}
+  </View>
 
-              <View style={[styles.sectionDivider, { backgroundColor: mode === 'light' ? '#eee' : '#333' }]} />
+  <View style={[styles.sectionDivider, { backgroundColor: mode === 'light' ? '#eee' : '#333' }]} />
 
-              <Text style={[styles.sectionTitle, { color: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]}>About Me</Text>
-              <Text style={[styles.aboutText, { color: textColor }]}>
-                {userData?.About || '---'}
-              </Text>
-            </View>
+  {/* Mood, Fact, Favourite Song */}
+  <Text style={[styles.sectionTitle, { color: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]}>
+    Mood
+  </Text>
+  <Text style={[styles.aboutText, { color: textColor }]}>
+    {userData?.mood || '---'}
+  </Text>
+
+  <Text style={[styles.sectionTitle, { color: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]}>
+    Mysterious Fact
+  </Text>
+  <Text style={[styles.aboutText, { color: textColor }]}>
+    {userData?.fact || '---'}
+  </Text>
+
+  <Text style={[styles.sectionTitle, { color: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]}>
+    Favourite Song
+  </Text>
+  <Text style={[styles.aboutText, { color: textColor }]}>
+    {userData?.song || '---'}
+  </Text>
+
+  <View style={[styles.sectionDivider, { backgroundColor: mode === 'light' ? '#eee' : '#333' }]} />
+
+  <Text style={[styles.sectionTitle, { color: mode === 'light' ? '#ff7e5f' : '#FF9F7F' }]}>About Me</Text>
+  <Text style={[styles.aboutText, { color: textColor }]}>
+    {userData?.About || '---'}
+  </Text>
+</View>
+
           </ScrollView>
 
           <TouchableOpacity style={[styles.settingsBtn, { backgroundColor: cardBackground, borderColor }]}
