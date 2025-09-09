@@ -30,12 +30,6 @@ export default function Login() {
 
       <Text style={styles.subtitle}>Let's meet new people around us!</Text>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => router.push('/phone')}
-      >
-        <Text style={styles.buttonText}>Login with Phone</Text>
-      </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.button}

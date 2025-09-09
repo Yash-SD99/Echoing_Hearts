@@ -16,9 +16,6 @@ function InnerLayout() {
         <Stack.Screen name="login" />
         <Stack.Screen name="email"/>
         <Stack.Screen name="forgotpass"/>
-        <Stack.Screen name="passotp"/>
-        <Stack.Screen name="phone"/>
-        <Stack.Screen name="phoneotp"/>
         <Stack.Screen name="signup1"/>
         <Stack.Screen name="signup2"/>
         <Stack.Screen name="signup3"/>
