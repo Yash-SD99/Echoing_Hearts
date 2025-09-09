@@ -1,31 +1,32 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  FlatList, 
-  StyleSheet, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   Animated,
   Easing
 } from 'react-native';
 import { useTheme } from '../utils/themeContext';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { onAuthStateChanged } from 'firebase/auth';
-import { 
-  collection, 
-  doc, 
-  query, 
-  orderBy, 
-  onSnapshot, 
-  addDoc, 
-  setDoc, 
-  updateDoc, 
-  serverTimestamp, 
-  increment 
+
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  collection,
+  doc,
+  query,
+  orderBy,
+  onSnapshot,
+  addDoc,
+  setDoc,
+  updateDoc,
+  serverTimestamp,
+  increment
 } from 'firebase/firestore';
 import { auth, db } from '../utils/firebaseConfig';
 
@@ -38,7 +39,7 @@ export default function ChatScreen() {
   const params = useLocalSearchParams();
   const { profileId, profileName } = params;
 
-  const currentUid = auth.currentUser?.uid; 
+  const currentUid = auth.currentUser?.uid;
   const chatId = makeChatId(currentUid, profileId);
 
   const [messages, setMessages] = useState([]);
@@ -172,6 +173,13 @@ export default function ChatScreen() {
         </Animated.View>
       </View>
 
+      {/* Input */}
+      <KeyboardAvoidingView
+        
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
+        style={[styles.inputContainer, {flex: 1}]}
+      >
       {/* Messages */}
       <FlatList
         ref={flatListRef}
@@ -180,14 +188,9 @@ export default function ChatScreen() {
         keyExtractor={(item) => item.id}
         style={{ flex: 1 }}
         contentContainerStyle={styles.messagesContent}
+        keyboardShouldPersistTaps="handled"
       />
 
-      {/* Input */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 100}
-        style={styles.inputContainer}
-      >
         <View style={styles.inputWrapper}>
           <TextInput
             style={styles.textInput}
@@ -212,12 +215,12 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    padding: 16, 
-    borderBottomWidth: 1, 
-    borderBottomColor: '#EEE' 
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEE'
   },
   backButton: { marginRight: 16 },
   backText: { fontSize: 24, fontWeight: 'bold', color: '#007AFF' },
@@ -241,12 +244,14 @@ const styles = StyleSheet.create({
     borderColor: '#DDD',
     borderRadius: 25,
     paddingHorizontal: 14,
-    paddingVertical: Platform.OS === 'ios' ? 10 : 6,
+    paddingVertical: 10, // unified for iOS & Android
     fontSize: 16,
     backgroundColor: '#F0F0F0',
-    color: '#000',
+    color: '#000', // always visible
     marginRight: 10,
-    maxHeight: 100,
+    maxHeight: 120, // slightly bigger to avoid clipping
+    includeFontPadding: false, // Android fix
+    textAlignVertical: 'top', // multiline starts at top
   },
   sendButton: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
   sendButtonText: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
