@@ -21,13 +21,26 @@
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.mysterymakers.Echoing_Hearts"
     },
     "web": {
       "favicon": "./assets/logo.png"
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1d13ea1e-7dca-44ef-bb26-9d1af33a6bc2"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/1d13ea1e-7dca-44ef-bb26-9d1af33a6bc2"
+    }
   }
 }

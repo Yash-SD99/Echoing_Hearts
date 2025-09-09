@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 
-import { View, Text, TextInput, TouchableOpacity, StyleSheet,Alert} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet,Alert, Image} from 'react-native';
 import { Tabs, useRouter } from 'expo-router';
 import { ThemeContext } from '../context/ThemeContext';
 import ThemeToggle from '../components/ThemeToggle';
@@ -43,10 +43,7 @@ export default function EmailLogin() {
     <View style={styles.container}>
       <ThemeToggle />
 
-      {/* Large rounded title box */}
-      <View style={styles.titleBox}>
-        <Text style={styles.title}>Mystery Makers</Text>
-      </View>
+      <Image source={require('../assets/logo.png')} style={[{height:300}, {width:300}, {alignSelf: 'center'}, {borderRadius: 50}]}></Image>
 
       <Text style={styles.subtitle}>Login</Text>
       <Text style={styles.info}>Please sign in using your email to continue</Text>
@@ -141,17 +138,6 @@ const lightStyles = StyleSheet.create({
 
 const darkStyles = StyleSheet.create({
   container: { flex: 1, paddingTop: 70,paddingLeft:10,paddingRight:10, backgroundColor: '#3C3C43',lineHeight:57 },
-  titleBox: {
-    alignSelf: 'center',
-    backgroundColor: '#FF383C',
-    borderRadius: 30,
-    paddingVertical: 35,
-    opacity:0.5,
-    paddingHorizontal: 20,
-    marginBottom: 30,
-    width: '85%',
-    elevation: 2
-  },
   title: { fontSize: 48, fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center',lineHeight:57  },
   subtitle: { fontSize: 36, fontWeight: 'bold', marginBottom: 8, color: '#F5F5F5', textAlign: 'left' },
   info: { fontSize: 16, marginBottom: 20, color: '#F5F5F5', textAlign: 'left', opacity: 0.5 },

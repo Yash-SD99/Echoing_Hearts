@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
+import { View, Text, TextInput, Button, StyleSheet, Alert, Image } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { db } from "../utils/firebaseConfig";
 import { collection, addDoc, serverTimestamp, doc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 
 export default function AddWhisper() {
   const { latitude, longitude } = useLocalSearchParams();
@@ -46,7 +48,9 @@ export default function AddWhisper() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <Image source={require('../assets/logo.png')} style={[{height:250}, {width:250}, {alignSelf: 'center'}, {borderRadius: 50}, {marginBottom: 10}]}></Image>
+      
       <Text style={styles.label}>Title</Text>
       <TextInput
         style={styles.input}
@@ -65,18 +69,19 @@ export default function AddWhisper() {
       />
 
       <Button title="Save Whisper" onPress={handleSave} />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  label: { fontSize: 16, fontWeight: "600", marginTop: 10 },
+  container: { flex: 1, padding: 20, backgroundColor: '#FFECEC' },
+  label: { fontSize: 16, fontWeight: "600", marginTop: 10, marginBottom: 10 },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 6,
     padding: 10,
     marginTop: 5,
+    marginBottom: 25,
   },
 });
