@@ -21,7 +21,7 @@ export default function Login() {
 
       <ThemeToggle style={styles.themeToggle} />
 
-      <Text style={styles.title}>Mystery Makers</Text>
+      <Image source={require('../assets/logo.png')} style={[{height:250}, {width:250}, {alignSelf: 'center'}, {borderRadius: 50}, {marginBottom: 10}]}></Image>
 
       <Image
         source={require('../assets/images/globe.png')}
@@ -73,14 +73,7 @@ const lightStyles = StyleSheet.create({
   },
 
   globe: { width: 250, height: 250, marginBottom: 20 },
-  title: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: '#FF383C',
-    opacity: 0.5,
-    textAlign: 'center',
-    lineHeight: 57,
-  },
+  
   subtitle: {
     fontSize: 28,
     color: '#000000',

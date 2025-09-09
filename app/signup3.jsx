@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../utils/themeContext';
 import ThemeToggle from '../components/ThemeToggle';
@@ -67,9 +67,7 @@ const isDarkMode = mode === 'dark';
     <View style={styles.container}>
       <ThemeToggle />
 
-      <View style={styles.titleBox}>
-        <Text style={styles.title}>Mystery Makers</Text>
-      </View>
+      <Image source={require('../assets/logo.png')} style={[{height:300}, {width:300}, {alignSelf: 'center'}, {borderRadius: 50}]}></Image>
 
       <Text style={styles.subtitle}>Set up your profile</Text>
       <Text style={styles.info}>Tell us more about yourself</Text>
@@ -164,17 +162,7 @@ const lightStyles = StyleSheet.create({
 
 const darkStyles = StyleSheet.create({
   container: { flex: 1, paddingTop: 70, paddingHorizontal: 10, backgroundColor: '#3C3C43' },
-  titleBox: {
-    alignSelf: 'center',
-    backgroundColor: '#FF383C',
-    borderRadius: 30,
-    opacity: 0.5,
-    paddingVertical: 35,
-    paddingHorizontal: 20,
-    marginBottom: 30,
-    width: '85%',
-    elevation: 2,
-  },
+
   title: {
     fontSize: 48,
     fontWeight: 'bold',

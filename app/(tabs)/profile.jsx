@@ -119,9 +119,9 @@ const Profile = () => {
                 color="#fff"
               />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.settingsIcon}>
+            {/* <TouchableOpacity style={styles.settingsIcon}>
               <Ionicons name="settings" size={24} color="#fff" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </LinearGradient>
 

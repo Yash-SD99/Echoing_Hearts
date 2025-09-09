@@ -56,9 +56,7 @@ export default function SelectProfile() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.titleBox}>
-        <Text style={styles.title}>Mystery Makers</Text>
-      </View>
+      <Image source={require('../assets/logo.png')} style={[{height:300}, {width:300}, {alignSelf: 'center'}, {borderRadius: 50}]}></Image>
 
       <Text style={styles.subtitle}>Select a profile picture</Text>
       <Text style={styles.helper}>
@@ -118,17 +116,7 @@ const lightStyles = StyleSheet.create({
     backgroundColor: '#FFECEC',
     alignItems: 'center',
   },
-  titleBox: {
-    alignSelf: 'center',
-    backgroundColor: '#FF383C',
-    borderRadius: 30,
-    opacity: 0.5,
-    paddingVertical: 35,
-    paddingHorizontal: 20,
-    marginBottom: 30,
-    width: '85%',
-    elevation: 2,
-  },
+  
   title: {
     fontSize: 48,
     fontWeight: 'bold',

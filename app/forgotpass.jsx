@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ThemeContext } from '../context/ThemeContext';
 import ThemeToggle from '../components/ThemeToggle';
@@ -33,9 +33,7 @@ export default function ForgotPass() {
     <View style={styles.container}>
       <ThemeToggle />
 
-      <View style={styles.titleBox}>
-        <Text style={styles.title}>Mystery Makers</Text>
-      </View>
+      <Image source={require('../assets/logo.png')} style={[{height:300}, {width:300}, {alignSelf: 'center'}, {borderRadius: 50}]}></Image>
 
       <Text style={styles.subtitle}>Forgot Password</Text>
 
