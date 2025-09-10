@@ -55,14 +55,11 @@ export default function SelectProfile() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: isDarkMode ? '#1A1A1A' : '#FFECEC' }]}>
-
+    <View style={styles.container}>
       <Image source={require('../assets/logo.png')} style={[{height:300}, {width:300}, {alignSelf: 'center'}, {borderRadius: 50}]}></Image>
 
-      <Text style={[styles.subtitle, { color: isDarkMode ? '#FFB3C6' : '#FF6F91' }]}>Select a profile picture</Text>
-
-      <Text style={[styles.helper, { color: isDarkMode ? '#FFDDE4' : '#C78C97' }]}>
-
+      <Text style={styles.subtitle}>Select a profile picture</Text>
+      <Text style={styles.helper}>
         Choose one of the avatars and a display name (not your real name) that
         really captures your vib
       </Text>
@@ -93,20 +90,12 @@ export default function SelectProfile() {
       {/* ✅ Display name input */}
       <View style={styles.inputWrap}>
         <TextInput
-  style={[
-    styles.input,
-    {
-      backgroundColor: isDarkMode ? '#33272A' : '#FFDDE4',
-      borderColor: '#FF6F91',
-      color: '#FF6F91',
-    }
-  ]}
-  placeholder="Enter display name"
-  placeholderTextColor={isDarkMode ? '#FFDDE4' : '#C78C97'}
-  value={displayName}
-  onChangeText={setDisplayName}
-/>
-
+          style={styles.input}
+          placeholder="Enter display name"
+          placeholderTextColor={styles.placeholderColor.color}
+          value={displayName}
+          onChangeText={setDisplayName}
+        />
       </View>
 
       {/* ✅ Save button */}

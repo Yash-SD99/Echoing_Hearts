@@ -112,9 +112,7 @@ export default function Progress() {
   const rectangles = [
     {
     title: 'Anonymous Name',
-    content: profileData?.displayName || 'Anonymous',
-    gender: profileData?.gender || 'Not specified'
-  },
+    content: profileData?.displayName || 'Anonymous'},
   
     { title: 'Interests & Hobbies', content: profileData?.Interests?.join(', ') || '---' },
     { title: 'Personality Traits', content: profileData?.Traits || '---' },
