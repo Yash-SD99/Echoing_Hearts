@@ -80,47 +80,78 @@ export default function SignupStep1() {
 
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.c1 }]}>
+
       <ThemeToggle />
 
       <Image source={require('../assets/logo.png')} style={[{ height: 300 }, { width: 300 }, { alignSelf: 'center' }, { borderRadius: 50 }]}></Image>
 
-      <Text style={styles.subtitle}>Sign Up</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Username*"
-        value={username}
-        onChangeText={setUsername}
-        placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
-      />
+      <Text style={[styles.subtitle, { color: theme.c2 }]}>Sign Up</Text>
 
 
       <TextInput
-        style={styles.input}
-        placeholder="Email*"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
-      />
+  style={[
+    styles.input,
+    {
+      backgroundColor: isDarkMode ? '#444448' : 'white',
+      borderColor: isDarkMode ? '#B03A3A' : '#FF6F91',
+      color: isDarkMode ? '#eee' : '#333',
+    },
+  ]}
+  placeholder="Username*"
+  value={username}
+  onChangeText={setUsername}
+  placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
+/>
+
+
       <TextInput
-        style={styles.input}
-        placeholder="Password*"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-        placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
-      />
+  style={[
+    styles.input,
+    {
+      backgroundColor: isDarkMode ? '#444448' : 'white',
+      borderColor: isDarkMode ? '#B03A3A' : '#FF6F91',
+      color: isDarkMode ? '#eee' : '#333',
+    },
+  ]}
+  placeholder="Username*"
+  value={username}
+  onChangeText={setUsername}
+  placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
+/>
+
       <TextInput
-        style={styles.input}
-        placeholder="Confirm Password*"
-        secureTextEntry
-        value={confPassword}
-        onChangeText={setConfPassword}
-        placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
-      />
+  style={[
+    styles.input,
+    {
+      backgroundColor: isDarkMode ? '#444448' : 'white',
+      borderColor: isDarkMode ? '#B03A3A' : '#FF6F91',
+      color: isDarkMode ? '#eee' : '#333',
+    },
+  ]}
+  placeholder="Password*"
+  secureTextEntry
+  value={password}
+  onChangeText={setPassword}
+  placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
+/>
+
+     <TextInput
+  style={[
+    styles.input,
+    {
+      backgroundColor: isDarkMode ? '#444448' : 'white',
+      borderColor: isDarkMode ? '#B03A3A' : '#FF6F91',
+      color: isDarkMode ? '#eee' : '#333',
+    },
+  ]}
+  placeholder="Confirm Password*"
+  secureTextEntry
+  value={confPassword}
+  onChangeText={setConfPassword}
+  placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
+/>
+
 
 
       <View style={styles.buttonRow}>

@@ -34,7 +34,7 @@ import { auth, db } from '../utils/firebaseConfig';
 const makeChatId = (uid1, uid2) => [uid1, uid2].sort().join('_');
 
 export default function ChatScreen() {
-  const { theme } = useTheme();
+  const { theme, mode, toggleTheme } = useTheme(); // ✅ theme = { c1, c2 }
   const router = useRouter();
   const params = useLocalSearchParams();
   const { profileId, profileName } = params;
@@ -143,28 +143,31 @@ export default function ChatScreen() {
       <View style={[styles.messageContainer, isCurrentUser ? styles.currentUserContainer : styles.otherUserContainer]}>
         {!isCurrentUser && <Text style={styles.senderName}>{item.sender}</Text>}
         <View style={[
-          styles.messageBubble,
-          { backgroundColor: isCurrentUser ? '#007AFF' : '#E8E8E8' }
+           styles.messageBubble,
+                { backgroundColor: isCurrentUser ? '#007AFF' : theme.c1 }
         ]}>
-          <Text style={{ color: isCurrentUser ? '#FFF' : '#000' }}>{item.text}</Text>
+            <Text style={{ color: isCurrentUser ? '#FFF' : theme.c2 }}>{item.text}</Text>
         </View>
-        <Text style={styles.timestamp}>
-          {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+
+        <Text style={[styles.timestamp, { color: theme.c2 }]}>
+            {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </Text>
+
       </View>
     );
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.c1 }} edges={['bottom']}>
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Text style={styles.backText}>←</Text>
         </TouchableOpacity>
         <View style={styles.headerInfo}>
-          <Text style={styles.headerTitle}>{profileName}</Text>
-          <Text style={styles.headerSubtitle}>Anonymous Connection</Text>
+          <Text style={[styles.headerTitle, { color: theme.c2 }]}>{profileName}</Text>
+          <Text style={[styles.headerSubtitle, { color: theme.c2 }]}>{profileName}</Text>
         </View>
         <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
           <TouchableOpacity style={styles.progressButton} onPress={animateButton}>
@@ -193,11 +196,14 @@ export default function ChatScreen() {
 
         <View style={styles.inputWrapper}>
           <TextInput
-            style={styles.textInput}
+            style={[
+              styles.textInput,
+               { backgroundColor: theme.c1, color: theme.c2, borderColor: theme.c2 }
+              ]}
             value={newMessage}
             onChangeText={setNewMessage}
             placeholder="Type your anonymous message..."
-            placeholderTextColor="#888"
+            placeholderTextColor={theme.c2}
             multiline
             maxLength={500}
           />
