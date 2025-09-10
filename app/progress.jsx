@@ -111,10 +111,9 @@ export default function Progress() {
   // Build rectangles dynamically
   const rectangles = [
     {
-    title: 'Anonymous Name',
-    content: profileData?.displayName || 'Anonymous',
-    gender: profileData?.gender || 'Not specified'   //gender specification
-  },
+    title: 'Anonymous Name & Gender',
+     content: `${profileData?.displayName || 'Anonymous'}\nGender: ${profileData?.gender || 'Not specified'}`
+    },
   
     { title: 'Interests & Hobbies', content: profileData?.Interests?.join(', ') || '---' },
     { title: 'Personality Traits', content: profileData?.Traits || '---' },
