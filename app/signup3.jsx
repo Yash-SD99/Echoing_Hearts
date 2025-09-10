@@ -10,7 +10,7 @@ import { doc, setDoc, updateDoc } from 'firebase/firestore';
 export default function SignupStep3() {
   const router = useRouter();
   const { mode } = useTheme();
-const isDarkMode = mode === 'dark';
+    const isDarkMode = mode === 'dark';
 
 
   const [displayName, setDisplayName] = useState('');
