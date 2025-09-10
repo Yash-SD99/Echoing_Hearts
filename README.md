@@ -16,31 +16,33 @@ Download the **Expo Go** app on your device:
 
 ### 2. Open the project
 Click this link (or scan the QR code inside Expo Go):  
-👉 **[Echoing Hearts Preview](https://u.expo.dev/your-update-link-here)**  
+👉 **[Echoing Hearts Preview](https://expo.dev/preview/update?message=Echoing+Hearts+by+Mystery+Makers&updateRuntimeVersion=1.0.0&createdAt=2025-09-10T15%3A28%3A46.230Z&slug=exp&projectId=1d13ea1e-7dca-44ef-bb26-9d1af33a6bc2&group=d40ffb38-6162-4f46-87b5-989221e3b05e)**  
+-If the link is not opening
+<img width="685" height="489" alt="image" src="https://github.com/user-attachments/assets/e8cd5694-26dd-4f62-8f63-bca732028fb7" />
 
-!!!--PLEASE GIVE LOCATION PERMISSIONS--!!!
-*(Replace with actual Expo update URL)*
+‼️ **PLEASE GIVE LOCATION PERMISSIONS** ‼️  
+
 
 ### 3. Explore features
 - Anonymous connections with gradual identity reveal  
 - Drop & read **whispers** on an interactive map  
 - Chat with others directly from whispers  
-- Beautiful profile page
--**Dark Mode** support for better night-time usability    
+- Beautiful profile page  
+- **Dark Mode** support for better night-time usability    
 
 ---
 
-## 📱 Screenshots
-_Add screenshots of your app here (optional but recommended)._
+## 🎥 Demo Video
+👉 [Watch Demo Video](https://drive.google.com/file/d/1ssWkYhdA1xSWhIWY_GG3gb30HGqUNYH5/view?usp=sharing)
 
 ---
 
 ## 👥 Team
 **Team Name:** Mystery Makers  
 **Members:**  
-- Vivek Kamath
-- Yash Deshmukh 
-- Sarvesh Zanke 
+- Vivek Kamath  
+- Yash Deshmukh  
+- Sarvesh Zanke  
 - Paarth Maharshi  
 
 ---
@@ -49,7 +51,8 @@ _Add screenshots of your app here (optional but recommended)._
 - **React Native** with **Expo**  
 - **Firebase** (Authentication, Firestore, Storage)  
 - **Expo Router** for navigation  
+
 ---
 
 ## 📂 GitHub Repository
-👉 [Echoing Hearts GitHub Repo] (https://github.com/Yash-SD99/Echoing_Hearts)
+👉 [Echoing Hearts GitHub Repo](https://github.com/Yash-SD99/Echoing_Hearts)
