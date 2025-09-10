@@ -1,9 +1,9 @@
 
 import React, { useState, useContext } from 'react';
 
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ThemeContext } from '../context/ThemeContext';
+import { useTheme } from '../utils/themeContext';
 import ThemeToggle from '../components/ThemeToggle';
 import { db, auth } from '../utils/firebaseConfig';
 import { setDoc, doc } from 'firebase/firestore';
@@ -11,8 +11,8 @@ import { useLocalSearchParams } from 'expo-router';
 
 export default function SignupStep2() {
   const router = useRouter();
-  const { theme } = useContext(ThemeContext);
-  const isDarkMode = theme === 'dark';
+  const { mode } = useTheme();
+    const isDarkMode = mode === 'dark';
   const { username,email} = useLocalSearchParams();
   
 
@@ -58,77 +58,46 @@ export default function SignupStep2() {
   }
 };
   return (
-    <View style={[styles.container, { backgroundColor: theme.c1 }]}>
-
+    <View style={styles.container}>
       <ThemeToggle />
 
-      <Image source={require('../assets/logo.png')} style={[{height:300}, {width:300}, {alignSelf: 'center'}, {borderRadius: 50}]}></Image>
+      <View style={styles.titleBox}>
+        <Text style={styles.title}>Mystery Makers</Text>
+      </View>
 
-      <Text style={[styles.subtitle, { color: theme.c2 }]}>Sign Up</Text>
+      <Text style={styles.subtitle}>Sign Up</Text>
 
-
-
-      <TextInput
-  style={[
-    styles.input,
-    {
-      backgroundColor: isDarkMode ? '#444448' : 'white',
-      borderColor: isDarkMode ? '#B03A3A' : '#FF6F91',
-      color: isDarkMode ? '#eee' : '#333',
-    },
-  ]}
-  placeholder="Gender*"
-  value={gender}
-  onChangeText={setGender}
-  placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
-/>
 
       <TextInput
-  style={[
-    styles.input,
-    {
-      backgroundColor: isDarkMode ? '#444448' : 'white',
-      borderColor: isDarkMode ? '#B03A3A' : '#FF6F91',
-      color: isDarkMode ? '#eee' : '#333',
-    },
-  ]}
-  placeholder="City*"
-  value={city}
-  onChangeText={setCity}
-  placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
-/>
-
+        style={styles.input}
+        placeholder="Gender*"
+        value={gender}
+        onChangeText={setGender}
+        placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
+      />
       <TextInput
-  style={[
-    styles.input,
-    {
-      backgroundColor: isDarkMode ? '#444448' : 'white',
-      borderColor: isDarkMode ? '#B03A3A' : '#FF6F91',
-      color: isDarkMode ? '#eee' : '#333',
-    },
-  ]}
-  placeholder="State, Country*"
-  value={stateCountry}
-  onChangeText={setStateCountry}
-  placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
-/>
+        style={styles.input}
 
+        placeholder="City*"
+        value={city}
+        onChangeText={setCity}
+        placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
+      />
       <TextInput
-  style={[
-    styles.input,
-    { height: 80 },
-    {
-      backgroundColor: isDarkMode ? '#444448' : 'white',
-      borderColor: isDarkMode ? '#B03A3A' : '#FF6F91',
-      color: isDarkMode ? '#eee' : '#333',
-    },
-  ]}
-  placeholder="Address"
-  value={address}
-  onChangeText={setAddress}
-  multiline
-  placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
-/>
+        style={styles.input}
+        placeholder="State, Country*"
+        value={stateCountry}
+        onChangeText={setStateCountry}
+        placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
+      />
+      <TextInput
+        style={[styles.input, { height: 80 }]}
+        placeholder="Address"
+        value={address}
+        onChangeText={setAddress}
+        multiline
+        placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
+      />
 
 
       {/* Custom Checkbox */}
@@ -252,6 +221,20 @@ const lightStyles = StyleSheet.create({
 
 const darkStyles = StyleSheet.create({
   container: { flex: 1, paddingTop: 70,paddingLeft:10,paddingRight:10, backgroundColor: '#3C3C43',lineHeight:57 },
+
+  titleBox: {
+    alignSelf: 'center',
+    backgroundColor: '#FF383C',
+    borderRadius: 30,
+    paddingVertical: 35,
+
+    opacity: 0.5,
+
+    paddingHorizontal: 20,
+    marginBottom: 30,
+    width: '85%',
+    elevation: 2
+  },
 
   title: { fontSize: 48, fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center', lineHeight: 57 },
   subtitle: { fontSize: 36, fontWeight: 'bold', marginBottom: 8, color: '#F5F5F5', textAlign: 'left' },

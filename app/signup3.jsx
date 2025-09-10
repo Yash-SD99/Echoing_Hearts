@@ -10,7 +10,7 @@ import { doc, setDoc, updateDoc } from 'firebase/firestore';
 export default function SignupStep3() {
   const router = useRouter();
   const { mode } = useTheme();
-const isDarkMode = mode === 'dark';
+    const isDarkMode = mode === 'dark';
 
 
   const [displayName, setDisplayName] = useState('');
@@ -64,53 +64,30 @@ const isDarkMode = mode === 'dark';
 };
 
   return (
-    <View style={[styles.container, { backgroundColor: mode === 'dark' ? '#3C3C43' : '#FFECEC' }]}>
-
+    <View style={styles.container}>
       <ThemeToggle />
 
       <Image source={require('../assets/logo.png')} style={[{height:300}, {width:300}, {alignSelf: 'center'}, {borderRadius: 50}]}></Image>
 
-      <Text style={[styles.subtitle, { color: isDarkMode ? '#FFECEC' : '#FF383C', opacity: isDarkMode ? 0.7 : 0.6 }]}>Set up your profile</Text>
-<Text style={[styles.info, { color: isDarkMode ? '#F5F5F5' : '#FF6F91', opacity: isDarkMode ? 0.6 : 0.9 }]}>Tell us more about yourself</Text>
-
+      <Text style={styles.subtitle}>Set up your profile</Text>
+      <Text style={styles.info}>Tell us more about yourself</Text>
 
       <TextInput
-        style={[
-    styles.input,
-    {
-      backgroundColor: isDarkMode ? '#444448' : '#FFECEC',
-      borderColor: isDarkMode ? '#B03A3A' : '#FF6F91',
-      color: isDarkMode ? '#eee' : '#333',
-    },
-  ]}
+        style={styles.input}
         placeholder="Name you would like to go by"
         value={displayName}
         onChangeText={setDisplayName}
         placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
       />
       <TextInput
-        style={[
-    styles.input,
-    {
-      backgroundColor: isDarkMode ? '#444448' : '#FFECEC',
-      borderColor: isDarkMode ? '#B03A3A' : '#FF6F91',
-      color: isDarkMode ? '#eee' : '#333',
-    },
-  ]}
+        style={styles.input}
         placeholder="pincode(optional)"
         value={pincode}
         onChangeText={setpincode}
         placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
       />
       <TextInput
-        style={[
-    styles.input,
-    {
-      backgroundColor: isDarkMode ? '#444448' : '#FFECEC',
-      borderColor: isDarkMode ? '#B03A3A' : '#FF6F91',
-      color: isDarkMode ? '#eee' : '#333',
-    },
-  ]}
+        style={styles.input}
         placeholder="Age"
         value={age}
         onChangeText={setAge}
@@ -118,14 +95,7 @@ const isDarkMode = mode === 'dark';
         placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
       />
       <TextInput
-        style={[
-    styles.input,
-    {
-      backgroundColor: isDarkMode ? '#444448' : '#FFECEC',
-      borderColor: isDarkMode ? '#B03A3A' : '#FF6F91',
-      color: isDarkMode ? '#eee' : '#333',
-    },
-  ]}
+        style={styles.input}
         placeholder="Height(cm) (optional)"
         value={height}
         onChangeText={setHeight}
@@ -133,15 +103,7 @@ const isDarkMode = mode === 'dark';
         placeholderTextColor={isDarkMode ? '#AAA' : '#555'}
       />
 
-
-      <TouchableOpacity
-  style={[
-    styles.nextButton,
-    { backgroundColor: isDarkMode ? '#D65151' : '#FF6F91' }
-  ]}
-  onPress={handleNext}
->
-
+      <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
         <Text style={styles.nextButtonText}>Next →</Text>
       </TouchableOpacity>
     </View>

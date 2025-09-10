@@ -11,8 +11,7 @@ export default function Login() {
   const router = useRouter();
 
   const { theme, mode } = useTheme();
-
-  const isDarkMode = mode === 'dark';
+    const isDarkMode = mode === 'dark';
 
   const styles = isDarkMode ? darkStyles : lightStyles;
 

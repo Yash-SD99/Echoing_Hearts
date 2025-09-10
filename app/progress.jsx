@@ -113,7 +113,7 @@ export default function Progress() {
     {
     title: 'Anonymous Name',
     content: profileData?.displayName || 'Anonymous',
-    gender: profileData?.gender || 'Not specified'
+    gender: profileData?.gender || 'Not specified'   //gender specification
   },
   
     { title: 'Interests & Hobbies', content: profileData?.Interests?.join(', ') || '---' },

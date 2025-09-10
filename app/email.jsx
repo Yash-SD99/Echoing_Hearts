@@ -2,15 +2,15 @@ import React, { useState, useContext } from 'react';
 
 import { View, Text, TextInput, TouchableOpacity, StyleSheet,Alert, Image} from 'react-native';
 import { Tabs, useRouter } from 'expo-router';
-import { ThemeContext } from '../context/ThemeContext';
+import { useTheme } from '../utils/themeContext';
 import ThemeToggle from '../components/ThemeToggle';
 import { auth } from '../utils/firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
 export default function EmailLogin() {
   const router = useRouter();
-  const { theme } = useContext(ThemeContext);
-  const isDarkMode = theme === 'dark';
+  const { theme, mode } = useTheme();
+    const isDarkMode = mode === 'dark';
 
 
   const [email, setEmail] = useState('');
