@@ -8,6 +8,7 @@ Users can drop whispers on a map at their current location, read whispers from o
 ---
 ## 🚀 Try it out
 We’ve published the latest build with **Expo Updates**. Follow these steps to test:
+<BR>‼️ **PLEASE GIVE LOCATION PERMISSIONS AFTER INSTALLING APP** ‼️ 
 
 ### 1. Install Expo Go
 Download the **Expo Go** app on your device:
@@ -19,9 +20,8 @@ Click this link (or scan the QR code inside Expo Go):
 👉 **[Echoing Hearts Preview](https://expo.dev/preview/update?message=Echoing+Hearts+by+Mystery+Makers&updateRuntimeVersion=1.0.0&createdAt=2025-09-12T14%3A01%3A53.387Z&slug=exp&projectId=1d13ea1e-7dca-44ef-bb26-9d1af33a6bc2&group=27a40c5e-2645-4584-bb5a-9a5bccb87920)**  
 -If the link is not opening
 <img width="577" height="374" alt="image" src="https://github.com/user-attachments/assets/ca8d9cc5-ea34-41e1-b0de-ca19989176d0" />
-
-
-‼️ **PLEASE GIVE LOCATION PERMISSIONS** ‼️  
+<BR>‼️ **PLEASE GIVE LOCATION PERMISSIONS AFTER INSTALLING APP** ‼️ 
+ 
 
 
 ### 3. Explore features
