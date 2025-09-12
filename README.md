@@ -16,9 +16,10 @@ Download the **Expo Go** app on your device:
 
 ### 2. Open the project
 Click this link (or scan the QR code inside Expo Go):  
-👉 **[Echoing Hearts Preview](https://expo.dev/preview/update?message=Echoing+Hearts+by+Mystery+Makers&updateRuntimeVersion=1.0.0&createdAt=2025-09-10T15%3A28%3A46.230Z&slug=exp&projectId=1d13ea1e-7dca-44ef-bb26-9d1af33a6bc2&group=d40ffb38-6162-4f46-87b5-989221e3b05e)**  
+👉 **[Echoing Hearts Preview](https://expo.dev/preview/update?message=Echoing+Hearts+by+Mystery+Makers&updateRuntimeVersion=1.0.0&createdAt=2025-09-12T14%3A01%3A53.387Z&slug=exp&projectId=1d13ea1e-7dca-44ef-bb26-9d1af33a6bc2&group=27a40c5e-2645-4584-bb5a-9a5bccb87920)**  
 -If the link is not opening
-<img width="685" height="489" alt="image" src="https://github.com/user-attachments/assets/e8cd5694-26dd-4f62-8f63-bca732028fb7" />
+<img width="577" height="374" alt="image" src="https://github.com/user-attachments/assets/ca8d9cc5-ea34-41e1-b0de-ca19989176d0" />
+
 
 ‼️ **PLEASE GIVE LOCATION PERMISSIONS** ‼️  
 
