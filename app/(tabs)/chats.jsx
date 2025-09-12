@@ -5,12 +5,12 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Platform,
 } from "react-native";
 import { useTheme } from "../../utils/themeContext";
 import { useRouter } from "expo-router";
 import { auth, db } from "../../utils/firebaseConfig";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   collection,
   query,
