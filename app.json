@@ -24,9 +24,7 @@
       "edgeToEdgeEnabled": true,
       "package": "com.mysterymakers.Echoing_Hearts"
     },
-    "web": {
-      "favicon": "./assets/logo.png"
-    },
+    "platforms": ["ios", "android"],
     "plugins": [
       "expo-router"
     ],
