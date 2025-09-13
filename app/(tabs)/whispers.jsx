@@ -2,24 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, FlatList, TouchableOpacity, Image } from 'react-native';
 import { useTheme } from '../../utils/themeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { collection, getDocs, doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db, auth } from '../../utils/firebaseConfig';
-import { useFocusEffect } from 'expo-router';
 
 const Whispers = () => {
   const { theme } = useTheme();
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { latitude, longitude } = params;
-
+  const{latitude,longitude}=params;
   const [whispers, setWhispers] = useState([]);
 
   // ----------------------------
   // Function to fetch whispers
   // ----------------------------
-  const fetchWhispers = async () => {
-    if (!latitude || !longitude) return;
+  const fetchWhispers = async (lat, lon) => {
+    if (isNaN(lat) || isNaN(lon)) return;
 
     try {
       const snapshot = await getDocs(collection(db, 'whispers'));
@@ -29,9 +27,8 @@ const Whispers = () => {
         const data = docItem.data();
         if (!data?.Location) continue;
 
-        if (parseFloat(data.Location.latitude) === parseFloat(latitude) &&
-            parseFloat(data.Location.longitude) === parseFloat(longitude)) {
-          
+        // ✅ exact number match
+        if (data.Location.latitude === lat && data.Location.longitude === lon) {
           const wSnap = await getDocs(collection(db, 'whispers', docItem.id, 'w'));
           wSnap.forEach(wDoc => {
             const wData = wDoc.data();
@@ -57,21 +54,30 @@ const Whispers = () => {
   };
 
   // ----------------------------
-  // Initial fetch
+  // Initial + param change fetch
   // ----------------------------
   useEffect(() => {
-    fetchWhispers();
-  }, [latitude, longitude]);
+    const lat = Number(params.latitude);
+    const lon = Number(params.longitude);
+
+    if (!isNaN(lat) && !isNaN(lon)) {
+      fetchWhispers(lat, lon);
+    }
+  }, [params.latitude, params.longitude]);
 
   // ----------------------------
   // Refresh when screen is focused
   // ----------------------------
   useFocusEffect(
-  React.useCallback(() => {
-    fetchWhispers(); // always fetch on focus
-  }, []) // empty dependency ensures it always runs
-);
+    React.useCallback(() => {
+      const lat = Number(params.latitude);
+      const lon = Number(params.longitude);
 
+      if (!isNaN(lat) && !isNaN(lon)) {
+        fetchWhispers(lat, lon);
+      }
+    }, [params.latitude, params.longitude])
+  );
 
   // ----------------------------
   // Open WhisperDetail screen
@@ -91,6 +97,7 @@ const Whispers = () => {
       },
     });
   };
+
 
   // ----------------------------
   // Handle like/dislike
