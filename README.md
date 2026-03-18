@@ -1,11 +1,81 @@
-# Echoing Hearts 💖  
-by **Mystery Makers**
+# 💖 Echoing Hearts
 
-## 🌟 Overview
-**Echoing Hearts** is an app that helps people connect anonymously and gradually reveal their identity in steps.  
-Users can drop whispers on a map at their current location, read whispers from others, and start conversations that slowly uncover the mystery behind each connection.  
+### *by Mystery Makers*
 
 ---
+
+## 🌟 Project Description
+
+**Echoing Hearts** is a location-based social app that enables people to connect anonymously and gradually reveal their identity over time.
+
+Users can drop **“whispers”** at their current location, explore whispers shared by others nearby, and start meaningful conversations. As interactions grow, identities are revealed step-by-step—turning strangers into genuine connections.
+
+> *Connect anonymously. Reveal gradually. Feel genuinely.*
+
+---
+
+## ✨ Key Features
+
+* 🕵️ **Anonymous Connections** – Start conversations without revealing identity
+* 🔐 **Gradual Identity Reveal** – Unlock user details as conversations deepen
+* 📍 **Location-Based Whispers** – Drop and discover messages on an interactive map
+* 💬 **Real-Time Chat** – Engage directly with users through whispers
+* 🌙 **Dark Mode Support** – Comfortable experience in low-light environments
+* 👤 **User Profiles** – Personalized profiles with controlled visibility
+
+---
+## 🏗️ System Architecture
+<img width="8192" height="1888" alt="image" src="https://github.com/user-attachments/assets/9f8d986a-70ce-4e80-9734-83e563555640" />
+
+
+## 🛡️ Safety & Privacy
+
+* Approximate location sharing (not exact coordinates)
+* User-controlled identity reveal
+* Secure authentication using Firebase
+* Scope for reporting and moderation features
+
+---
+
+## 🛠️ Tech Stack
+
+* **Frontend:** React Native (Expo)
+* **Navigation:** Expo Router
+* **Backend:** Firebase
+
+  * Authentication
+  * Firestore Database
+  * Cloud Storage
+
+---
+
+## 🚀 Future Enhancements
+
+* AI-based content moderation 🤖
+* Interest-based matching
+* Voice whispers 🎤
+* Ephemeral whispers (auto-delete)
+* Trust score / reputation system
+
+---
+
+
+## 🎥 Demo Video
+
+👉 https://drive.google.com/file/d/1ssWkYhdA1xSWhIWY_GG3gb30HGqUNYH5/view?usp=sharing
+
+---
+
+
+## 👥 Team – Mystery Makers
+
+* Vivek Kamath
+* Yash Deshmukh
+* Sarvesh Zanke
+* Paarth Maharshi
+
+---
+
 ## 🚀 Try it out
 We’ve published the latest build with **Expo Updates**. Follow these steps to test:
 <BR>‼️ **PLEASE GIVE LOCATION PERMISSIONS AFTER INSTALLING APP** ‼️ 
@@ -33,27 +103,6 @@ Click this link (or scan the QR code inside Expo Go):
 - **Dark Mode** support for better night-time usability    
 
 ---
-
-## 🎥 Demo Video
-👉 [Watch Demo Video](https://drive.google.com/file/d/1ssWkYhdA1xSWhIWY_GG3gb30HGqUNYH5/view?usp=sharing)
-
----
-
-## 👥 Team
-**Team Name:** Mystery Makers  
-**Members:**  
-- Vivek Kamath  
-- Yash Deshmukh  
-- Sarvesh Zanke  
-- Paarth Maharshi  
-
----
-
-## 🛠️ Tech Stack
-- **React Native** with **Expo**  
-- **Firebase** (Authentication, Firestore, Storage)  
-- **Expo Router** for navigation  
-
 ---
 
 ## 📂 GitHub Repository
